@@ -224,6 +224,29 @@ public final class Constants {
         }
     }
 
+    public static final class IndexerConstants {
+        // Motor control voltages
+        public static final Voltage INDEXER_SPEED = Volts.of(3.0);
+        public static final Voltage INDEXER_REVERSE_SPEED = Volts.of(-2.0);
+        public static final Voltage INDEXER_HOLD_SPEED = Volts.of(0.1);
+        
+        // Current thresholds for coral detection
+        public static final Current CORAL_DETECTION_CURRENT = Amps.of(8.0);
+        public static final Current STALL_CURRENT = Amps.of(15.0);
+        
+        // Timeout for coral detection debouncing
+        public static final double CORAL_DETECTION_TIMEOUT = 0.1; // seconds
+        
+        public static TalonFXConfiguration getMotorConfig() {
+            TalonFXConfiguration config = new TalonFXConfiguration();
+            config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+            config.CurrentLimits.StatorCurrentLimitEnable = true;
+            config.CurrentLimits.StatorCurrentLimit = 30;
+            config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+            return config;
+        }
+    }
+
     public static final class DriverAssistConstants {
         // public static final Pose2d[] BLUE_REEF_POSITIONS = { // {x (m), y (m), angle (rad)}
         //     new Pose2d(3.7454309463500977, 5.406795501708984, new Rotation2d(-1.0584074157409784)),
