@@ -34,12 +34,12 @@ public final class Constants {
 
     public static final class ElevatorConstants {
         // Physical geometry
-        // For example: 22 * 0.25 inches * 2 = 11 inches per rotation
+        // For example: .0150m per rotation
         // Convert to meters for internal usage
         public static final Distance DIST_PER_ROTATION =
-                Units.Inches.of(22 * 0.25).times(2);
+                Meter.of(.015);
         public static final double rotationsPerMeter = 1.0 / DIST_PER_ROTATION.in(Meters);
-        public static final double GEAR_RATIO = 6.0;
+        public static final double GEAR_RATIO = 52. / 11;
         public static final double MASS = 3.46;
         public static final double DRUM_RADIUS = DIST_PER_ROTATION.in(Meter) / (2 * Math.PI);
 
