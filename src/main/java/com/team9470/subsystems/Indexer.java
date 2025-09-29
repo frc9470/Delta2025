@@ -22,12 +22,12 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  * Detects coral presence using current monitoring and beam break sensors.
  */
 public class Indexer extends SubsystemBase {
-    /** MOTORS */
+
     private final TalonFX indexerMotor1 = TalonFXFactory.createDefaultTalon(Ports.INDEXER_1);
     private final TalonFX indexerMotor2 = TalonFXFactory.createDefaultTalon(Ports.INDEXER_2);
     
-    /** SENSORS */
-    private final DigitalInput coralSensor = new DigitalInput(Ports.CORAL_BREAK);
+
+    private final DigitalInput coralSensor = new DigitalInput(Ports.CORAL_BREAK); //beam break
     
     /** STATUS SIGNALS for current monitoring */
     private final StatusSignal<Current> motor1CurrentSignal = indexerMotor1.getStatorCurrent();
@@ -67,22 +67,22 @@ public class Indexer extends SubsystemBase {
     }
 
     /**
-     * Updates coral detection based on current draw and beam break sensor
+     * Updates coral detection based on beam break sensor as primary method,
+     * with current monitoring as fallback
      */
     private void updateCoralDetection() {
-        // Get current readings
-        Current motor1Current = motor1CurrentSignal.asSupplier().get();
-        Current motor2Current = motor2CurrentSignal.asSupplier().get();
-        
-        // Check if either motor is drawing high current (indicating resistance from coral)
-        boolean highCurrent1 = motor1Current.gte(IndexerConstants.CORAL_DETECTION_CURRENT);
-        boolean highCurrent2 = motor2Current.gte(IndexerConstants.CORAL_DETECTION_CURRENT);
-        
-        // Check beam break sensor (inverted logic - true when beam is broken)
+        // Primary detection: Beam break sensor (inverted logic - true when beam is broken)
         boolean beamBreak = !coralSensor.get();
         
-        // Coral is present if beam break is triggered OR if motors are drawing high current
-        coralPresent = beamBreak || highCurrent1 || highCurrent2;
+        // Fallback detection: Current monitoring
+        Current motor1Current = motor1CurrentSignal.asSupplier().get();
+        Current motor2Current = motor2CurrentSignal.asSupplier().get();
+        boolean highCurrent1 = motor1Current.gte(IndexerConstants.CORAL_DETECTION_CURRENT);
+        boolean highCurrent2 = motor2Current.gte(IndexerConstants.CORAL_DETECTION_CURRENT);
+        boolean highCurrentFallback = highCurrent1 || highCurrent2;
+        
+        // Coral is present if beam break is triggered (primary) OR current fallback is active
+        coralPresent = beamBreak || highCurrentFallback;
     }
 
     /**
