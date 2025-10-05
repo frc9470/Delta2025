@@ -101,6 +101,40 @@ public final class Constants {
         }
     }
 
+    public static final class ArmConstants {
+        // TODO: Tune.
+        public static final Current ITEM_DETECTION_CURRENT = Amps.of(12.0);
+
+        // TODO: Tune.
+        public static final Angle HOMING_ANGLE = Degrees.of(-95);
+
+        // TODO: Tune.
+        public static TalonFXConfiguration getPivotConfig() {
+            TalonFXConfiguration config = new TalonFXConfiguration();
+
+            // want to HOLD position of arm when stopped.
+            config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+            config.CurrentLimits.StatorCurrentLimitEnable = true;
+            config.CurrentLimits.StatorCurrentLimit = 40;
+            config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+
+            return config;
+        }
+
+        // TODO: Tune.
+        public static TalonFXConfiguration getRollerConfig() {
+            TalonFXConfiguration config = new TalonFXConfiguration();
+
+            // want to HOLD coral/algae when stopped.
+            config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+            config.CurrentLimits.StatorCurrentLimitEnable = true;
+            config.CurrentLimits.StatorCurrentLimit = 30;
+            config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+
+            return config;
+        }
+    }
+
     public static final class AlgaeConstants {
         public static final Angle STOW_UP = Degrees.of(90);
         public static final Angle STOW_DOWN = Degrees.of(-95);

@@ -26,8 +26,14 @@ public class Ports {
     public static final CanDeviceId INDEXER_1 = new CanDeviceId(0, "rio");
     public static final CanDeviceId INDEXER_2 = new CanDeviceId(1, "rio");
 
+    // TODO: Replace placeholders.
+    public static final CanDeviceId ARM_ANGLE = new CanDeviceId(0, "rio");
+    public static final CanDeviceId ARM_ROLLERS = new CanDeviceId(1, "rio");
+
     /**
      * Beam Break IDs
      */
     public static final int CORAL_BREAK = 1;
+    // TODO: Replace placeholders.
+    public static final int CRADLE_BREAK = 1;
 }
