@@ -247,6 +247,62 @@ public final class Constants {
         }
     }
 
+    public static final class IntakeConstants {
+        // Arm positions
+        public static final Angle RETRACTED_ANGLE = Degrees.of(0); // Retracted position
+        public static final Angle DOWN_ANGLE = Degrees.of(-90); // Down position for ground intake
+        public static final Angle HOMING_ANGLE = DOWN_ANGLE; // Use down position for homing
+        
+        // Motion control
+        public static final double CRUISE_VELOCITY = 15; // degrees per second
+        public static final double ACCELERATION = 30; // degrees per second squared
+        public static final double JERK = 0;
+        
+        // Homing
+        public static final Current HOMING_THRESHOLD = Amps.of(8); // Current threshold for homing
+        public static final Voltage HOMING_OUTPUT = Volts.of(-1.0); // Homing voltage
+        public static final Time HOMING_TIMEOUT = Seconds.of(10); // Homing timeout
+        
+        // Roller control
+        public static final Voltage ROLLER_SPEED = Volts.of(4.0); // Roller intake speed
+        public static final Voltage ROLLER_REVERSE_SPEED = Volts.of(-2.0); // Roller reverse speed
+        
+        // Physical properties
+        public static final double GEAR_RATIO = 10; // Arm gear ratio
+        public static final Mass ARM_MASS = Kilogram.of(2.0); // Arm mass in kg
+        public static final Distance ARM_LENGTH = Meter.of(0.3); // Arm length in meters
+        public static final Angle MIN_ANGLE = Degrees.of(-95); // Minimum angle
+        public static final Angle MAX_ANGLE = Degrees.of(5); // Maximum angle
+        
+        public static TalonFXConfiguration getArmConfig() {
+            TalonFXConfiguration config = new TalonFXConfiguration();
+            config.MotionMagic.MotionMagicCruiseVelocity = CRUISE_VELOCITY;
+            config.MotionMagic.MotionMagicAcceleration = ACCELERATION;
+            config.MotionMagic.MotionMagicJerk = JERK;
+            config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
+            config.Slot0.kP = 25;
+            config.Slot0.kI = 0.0;
+            config.Slot0.kD = 0.0;
+            config.Slot0.kG = 0.1;
+            config.Slot0.kS = 0.0;
+            config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
+            config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+            config.CurrentLimits.StatorCurrentLimitEnable = true;
+            config.CurrentLimits.StatorCurrentLimit = 40;
+            config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+            return config;
+        }
+        
+        public static TalonFXConfiguration getRollerConfig() {
+            TalonFXConfiguration config = new TalonFXConfiguration();
+            config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+            config.CurrentLimits.StatorCurrentLimitEnable = true;
+            config.CurrentLimits.StatorCurrentLimit = 25;
+            config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+            return config;
+        }
+    }
+
     public static final class DriverAssistConstants {
         // public static final Pose2d[] BLUE_REEF_POSITIONS = { // {x (m), y (m), angle (rad)}
         //     new Pose2d(3.7454309463500977, 5.406795501708984, new Rotation2d(-1.0584074157409784)),
