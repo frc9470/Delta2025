@@ -27,7 +27,7 @@ public class Intake extends SubsystemBase {
     // --- Hardware ---
     private final TalonFX armMotor;
     private final TalonFX rollerMotor;
-    private final DigitalInput coralSensor = new DigitalInput(Ports.CORAL_BREAK);
+    private final DigitalInput coralSensor = new DigitalInput(Ports.INDEXER_SENSOR);
 
     // --- Control objects ---
     private final MotionMagicVoltage motionMagic = new MotionMagicVoltage(0);
