@@ -73,7 +73,16 @@ public class TunerConstants {
             );
     private static final CANcoderConfiguration encoderInitialConfigs = new CANcoderConfiguration();
     // Configs for the Pigeon 2; leave this null to skip applying Pigeon 2 configs
-    private static final Pigeon2Configuration pigeonConfigs = null;
+    private static final Pigeon2Configuration pigeonConfigs = new Pigeon2Configuration();
+
+    static {
+        /*
+         * The Pigeon 2 is mounted 90 degrees counter-clockwise from the robot-forward
+         * direction, so inform the device of the mount pose to ensure the reported
+         * yaw matches the robot coordinate frame.
+         */
+        pigeonConfigs.MountPose.MountPoseYaw = 90.0;
+    }
     // Every 1 rotation of the azimuth results in kCoupleRatio drive motor turns;
     // This may need to be tuned to your individual robot
     private static final double kCoupleRatio = 5.4;

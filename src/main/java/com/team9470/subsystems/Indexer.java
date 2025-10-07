@@ -27,7 +27,7 @@ public class Indexer extends SubsystemBase {
     private final TalonFX indexerMotor2 = TalonFXFactory.createDefaultTalon(Ports.INDEXER_2);
     
 
-    private final DigitalInput coralSensor = new DigitalInput(Ports.CORAL_BREAK); //beam break
+    private final DigitalInput coralSensor = new DigitalInput(Ports.INDEXER_SENSOR); //beam break
     
     /** STATUS SIGNALS for current monitoring */
     private final StatusSignal<Current> motor1CurrentSignal = indexerMotor1.getStatorCurrent();

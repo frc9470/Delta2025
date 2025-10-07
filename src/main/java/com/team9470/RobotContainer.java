@@ -87,13 +87,6 @@ public class RobotContainer {
         // Reset field-centric heading
         xbox.x().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
-        // SUPERSTRUCTURE COMMANDS
-        xbox.b().whileTrue(superstructure.reverseCoral());
-
-        xbox.leftBumper().whileTrue(superstructure.algaeUp());
-        xbox.leftTrigger().whileTrue(superstructure.algaeDown());
-        xbox.back().onTrue(superstructure.triggerAlgaeHoming());
-
         // Example of binding elevator level commands via the superstructure's elevator
         for (int i = 0; i < 4; i++) {
             final int id = i;
@@ -110,20 +103,17 @@ public class RobotContainer {
         }
 
         xbox.rightTrigger()
-                .whileTrue(autoScoring.autoScore(superstructure)).onFalse(superstructure.getElevator().L0().onlyIf(() -> !superstructure.getCoral().hasCoral()));
+                .whileTrue(autoScoring.autoScore(superstructure)).onFalse(superstructure.getElevator().L0());
 
 
         xbox.y()
-                        .whileTrue(autoScoring.autoScoreNoDrive(superstructure).onlyIf(superstructure.getCoral()::hasCoral));
+                        .whileTrue(autoScoring.autoScoreNoDrive(superstructure));
 
         xbox.rightStick().whileTrue(new InstantCommand(autoScoring::updateClosestReefPos));
 
         xbox.povRight().whileTrue(superstructure.scoreAndFunnel());
 //        xbox.povUp().whileTrue(superstructure.raise(3));
 //        xbox.povDown().whileTrue(superstructure.getElevator().L0());
-
-        xbox.povUp().whileTrue(superstructure.climberAction());
-        xbox.povLeft().whileTrue(superstructure.funnelOut());
 
 
 
