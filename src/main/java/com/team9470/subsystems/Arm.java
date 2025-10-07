@@ -1,34 +1,46 @@
 package com.team9470.subsystems;
 
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.team254.lib.drivers.TalonFXFactory;
 import com.team254.lib.drivers.TalonUtil;
+import com.team9470.Constants.ArmConstants;
 import com.team9470.Ports;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.Current;
-import edu.wpi.first.units.measure.Time;
-import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.units.measure.*;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import com.team9470.Constants.ArmConstants;
+import static edu.wpi.first.units.Units.*;
 
-import static edu.wpi.first.units.Units.Seconds;
-
+/**
+ * Arm subsystem for handling both coral and algae intake and scoring in the 2025 FRC Reefscape game.
+ * Features motion magic control for precise positioning and roller control for item manipulation.
+ * Automatically detects items via current monitoring and maintains hold pressure.
+ */
 public class Arm extends SubsystemBase {
+    // --- Hardware ---
     private final TalonFX pivotMotor = TalonFXFactory.createDefaultTalon(Ports.ARM_ANGLE);
     private final TalonFX rollerMotor = TalonFXFactory.createDefaultTalon(Ports.ARM_ROLLERS);
 
-    private final DigitalInput cradleSensor = new DigitalInput(Ports.CRADLE_BREAK);
+    // --- Control objects ---
+    private final MotionMagicVoltage motionMagic = new MotionMagicVoltage(0);
+    private final VoltageOut homingVoltage = new VoltageOut(ArmConstants.HOMING_OUTPUT);
 
-    /** STATUS SIGNALS for current monitoring */
-    private final StatusSignal<Current> pivotMotorCurrentSignal = pivotMotor.getStatorCurrent();
-    private final StatusSignal<Current> rollerMotorCurrentSignal = rollerMotor.getStatorCurrent();
+    // --- Status Signals ---
+    private final StatusSignal<Angle> positionSignal = pivotMotor.getPosition();
+    private final StatusSignal<AngularVelocity> velocitySignal = pivotMotor.getVelocity();
+    private final StatusSignal<Current> pivotCurrentSignal = pivotMotor.getStatorCurrent();
+    private final StatusSignal<Current> rollerCurrentSignal = rollerMotor.getStatorCurrent();
 
+    // --- State tracking ---
     private boolean rollersRunning = false;
-    private boolean cradleCoral = false;
-
-    // ONE of the two will be true:
+    private boolean hasItem = false;
+    private boolean holdingItem = false;
+    
+    // Item type tracking
     private boolean holdingCoral = false;
     private boolean holdingAlgae = false;
 
@@ -37,47 +49,417 @@ public class Arm extends SubsystemBase {
         IDLE,
         HOMING,
         HOMED
-    };
+    }
     private boolean needsHoming = true;
-    // Should start homing at the beginning of the match.
     private HomingState homingState = HomingState.HOMING;
     private Time homingStartTime = Seconds.of(0);
 
     // --- Target angle ---
-    // private Angle targetAngle =
+    private Angle targetAngle = ArmConstants.HOMING_ANGLE;
 
-    // TODO: Construct simulation objects (PeriodicIO, Ligament Mechanism, etc.
+    // --- Periodic I/O container ---
+    public static class PeriodicIO {
+        // Inputs
+        public Time timestamp;
+        public Angle position;
+        public AngularVelocity velocity;
+        public Current pivotCurrent;
+        public Current rollerCurrent;
+
+        // Outputs / Telemetry
+        public Angle goal;
+        public HomingState homingState;
+        public boolean rollersRunning;
+        public boolean hasItem;
+        public boolean holdingItem;
+    }
+    private final PeriodicIO periodicIO = new PeriodicIO();
+
 
     public Arm() {
-        // Apply motor configurations.
+        // Apply motor configurations
         TalonUtil.applyAndCheckConfiguration(pivotMotor, ArmConstants.getPivotConfig());
         TalonUtil.applyAndCheckConfiguration(rollerMotor, ArmConstants.getRollerConfig());
 
-        // Set up status signals for current monitoring.
-        pivotMotorCurrentSignal.setUpdateFrequency(50, 0.1);
-        rollerMotorCurrentSignal.setUpdateFrequency(50, 0.1);
-
-        // Set default command to stop rollers.
+        // Set up sensor status signals
+        Frequency refreshRate = Hertz.of(20);
+        positionSignal.setUpdateFrequency(refreshRate, 0.1);
+        velocitySignal.setUpdateFrequency(refreshRate, 0.1);
+        pivotCurrentSignal.setUpdateFrequency(refreshRate, 0.1);
+        rollerCurrentSignal.setUpdateFrequency(refreshRate, 0.1);
     }
 
     @Override
     public void periodic() {
+        readPeriodicInputs();
+
+        // Homing logic
+        if (needsHoming) {
+            updateHomingLogic();
+        } else {
+            homingState = HomingState.IDLE;
+        }
+        periodicIO.homingState = homingState;
+
+        // Item detection and hold logic
         updateItemDetection();
 
-        // Inverted logic, so will be true when
-        cradleCoral = !cradleSensor.get();
+        writePeriodicOutputs();
     }
 
-    private void updateItemDetection() {
-        // Get motor reading.
-        Current rollerMotorCurrent = rollerMotorCurrentSignal.asSupplier().get();
+    /** Read sensor values into PeriodicIO structure */
+    private void readPeriodicInputs() {
+        periodicIO.timestamp = Seconds.of(Timer.getFPGATimestamp());
+        periodicIO.position = positionSignal.asSupplier().get();
+        periodicIO.velocity = velocitySignal.asSupplier().get();
+        periodicIO.pivotCurrent = pivotCurrentSignal.asSupplier().get();
+        periodicIO.rollerCurrent = rollerCurrentSignal.asSupplier().get();
+        periodicIO.goal = targetAngle;
+        periodicIO.rollersRunning = rollersRunning;
+        periodicIO.hasItem = hasItem;
+        periodicIO.holdingItem = holdingItem;
+    }
 
-        // Check if the motor is drawing high current.
-        boolean rollerHighCurrent = rollerMotorCurrent.gte(ArmConstants.ITEM_DETECTION_CURRENT);
-
-        // If high current, there is an item.
-        if (rollerHighCurrent) {
-
+    /** Run homing state machine logic */
+    private void updateHomingLogic() {
+        switch (homingState) {
+            case IDLE:
+                boolean timeOut = periodicIO.timestamp.minus(homingStartTime).gt(ArmConstants.HOMING_TIMEOUT);
+                if (ArmConstants.HOMING_ANGLE.isNear(periodicIO.position, Degrees.of(5)) && timeOut) {
+                    homingState = HomingState.HOMING;
+                    homingStartTime = periodicIO.timestamp;
+                }
+                break;
+            case HOMING:
+                boolean velocityStalled = Math.abs(periodicIO.velocity.in(DegreesPerSecond)) < 0.5;
+                boolean currentTooHigh = periodicIO.pivotCurrent.gte(ArmConstants.HOMING_THRESHOLD);
+                if (velocityStalled && currentTooHigh) {
+                    // Zero the sensor at the homing limit
+                    pivotMotor.setPosition(ArmConstants.HOMING_ANGLE);
+                    homingState = HomingState.HOMED;
+                }
+                break;
+            case HOMED:
+                needsHoming = false;
+                homingState = HomingState.IDLE;
+                break;
         }
+    }
+
+    /** Update item detection and hold logic */
+    private void updateItemDetection() {
+        // Check if rollers are drawing high current (indicating item resistance)
+        boolean rollerHighCurrent = periodicIO.rollerCurrent.gte(ArmConstants.ITEM_DETECTION_CURRENT);
+        
+        // Item is detected based on roller current draw
+        hasItem = rollerHighCurrent;
+        
+        // If we have an item and rollers are running, switch to hold mode
+        if (hasItem && rollersRunning && !holdingItem) {
+            holdingItem = true;
+            holdItem();
+        }
+    }
+
+    /** Write outputs to motors */
+    private void writePeriodicOutputs() {
+        if (homingState == HomingState.HOMING) {
+            pivotMotor.setControl(homingVoltage);
+        } else {
+            pivotMotor.setControl(
+                    motionMagic.withPosition(targetAngle)
+                            .withSlot(0)
+                            .withEnableFOC(true));
+        }
+    }
+
+    /** Set the desired target angle for the arm */
+    public void setTargetAngle(Angle angle) {
+        targetAngle = angle;
+    }
+
+    /** Get the current arm angle */
+    public Angle getAngle() {
+        return periodicIO.position;
+    }
+
+    /** Get the current angular velocity */
+    public AngularVelocity getAngularVelocity() {
+        return periodicIO.velocity;
+    }
+
+    /** Get the pivot motor current */
+    public Current getPivotCurrent() {
+        return periodicIO.pivotCurrent;
+    }
+
+    /** Get the roller motor current */
+    public Current getRollerCurrent() {
+        return periodicIO.rollerCurrent;
+    }
+
+    /** Start intake rollers */
+    public void startIntake() {
+        rollerMotor.setVoltage(ArmConstants.ROLLER_INTAKE_SPEED.in(Volts));
+        rollersRunning = true;
+        holdingItem = false;
+    }
+
+    /** Start output rollers */
+    public void startOutput() {
+        rollerMotor.setVoltage(ArmConstants.ROLLER_OUTPUT_SPEED.in(Volts));
+        rollersRunning = true;
+        holdingItem = false;
+    }
+
+    /** Hold item with stalling voltage */
+    public void holdItem() {
+        rollerMotor.setVoltage(ArmConstants.ROLLER_HOLD_SPEED.in(Volts));
+        rollersRunning = true;
+        holdingItem = true;
+    }
+
+    /** Stop rollers */
+    public void stopRollers() {
+        rollerMotor.stopMotor();
+        rollersRunning = false;
+        holdingItem = false;
+    }
+
+    /** Trigger homing sequence */
+    public void triggerHoming() {
+        needsHoming = true;
+        homingState = HomingState.HOMING;
+        homingStartTime = periodicIO.timestamp;
+    }
+
+    /** Check if item is detected */
+    public boolean hasItem() {
+        return hasItem;
+    }
+
+    /** Check if rollers are running */
+    public boolean areRollersRunning() {
+        return rollersRunning;
+    }
+
+    /** Check if holding item */
+    public boolean isHoldingItem() {
+        return holdingItem;
+    }
+
+    /** Set item type being held */
+    public void setHoldingCoral(boolean holding) {
+        holdingCoral = holding;
+        holdingAlgae = !holding;
+    }
+
+    /** Set item type being held */
+    public void setHoldingAlgae(boolean holding) {
+        holdingAlgae = holding;
+        holdingCoral = !holding;
+    }
+
+    /** Check if holding coral */
+    public boolean isHoldingCoral() {
+        return holdingCoral;
+    }
+
+    /** Check if holding algae */
+    public boolean isHoldingAlgae() {
+        return holdingAlgae;
+    }
+
+    // --- Command Methods ---
+
+    /**
+     * Returns a command that moves the arm to the specified angle
+     */
+    public Command getMoveToAngleCommand(Angle angle) {
+        return new Command() {
+            @Override
+            public void execute() {
+                setTargetAngle(angle);
+            }
+            @Override
+            public boolean isFinished() {
+                return getAngle().isNear(angle, Degrees.of(2));
+            }
+        };
+    }
+
+    /**
+     * Returns a command that starts homing the arm
+     */
+    public Command getHomingCommand() {
+        return new Command() {
+            @Override
+            public void execute() {
+                triggerHoming();
+            }
+            @Override
+            public boolean isFinished() {
+                return homingState == HomingState.HOMED;
+            }
+        };
+    }
+
+    // --- Intake Commands ---
+
+    public Command coralIntakeCommand() {
+        return getMoveToAngleCommand(ArmConstants.CORAL_INTAKE_ANGLE)
+                .andThen(this.run(this::startIntake));
+    }
+
+    public Command algaeGroundIntakeCommand() {
+        return getMoveToAngleCommand(ArmConstants.ALGAE_GROUND_INTAKE_ANGLE)
+                .andThen(this.run(this::startIntake));
+    }
+
+    public Command algaeReefIntakeCommand() {
+        return getMoveToAngleCommand(ArmConstants.ALGAE_REEF_INTAKE_ANGLE)
+                .andThen(this.run(this::startIntake));
+    }
+
+    // --- Coral Scoring Commands ---
+
+    public Command coralL4BeforeScoringCommand() {
+        return getMoveToAngleCommand(ArmConstants.CORAL_L4_BEFORE_SCORING);
+    }
+
+    public Command coralL4ScoringCommand() {
+        return getMoveToAngleCommand(ArmConstants.CORAL_L4_SCORING)
+                .andThen(new Command() {
+                    @Override
+                    public void execute() {
+                        startOutput();
+                    }
+                    @Override
+                    public boolean isFinished() {
+                        return !hasItem(); // Stop when item is no longer detected
+                    }
+                    @Override
+                    public void end(boolean interrupted) {
+                        stopRollers();
+                    }
+                });
+    }
+
+    public Command coralL3BeforeScoringCommand() {
+        return getMoveToAngleCommand(ArmConstants.CORAL_L3_BEFORE_SCORING);
+    }
+
+    public Command coralL3ScoringCommand() {
+        return getMoveToAngleCommand(ArmConstants.CORAL_L3_SCORING)
+                .andThen(new Command() {
+                    @Override
+                    public void execute() {
+                        startOutput();
+                    }
+                    @Override
+                    public boolean isFinished() {
+                        return !hasItem(); // Stop when item is no longer detected
+                    }
+                    @Override
+                    public void end(boolean interrupted) {
+                        stopRollers();
+                    }
+                });
+    }
+
+    public Command coralL2BeforeScoringCommand() {
+        return getMoveToAngleCommand(ArmConstants.CORAL_L2_BEFORE_SCORING);
+    }
+
+    public Command coralL2ScoringCommand() {
+        return getMoveToAngleCommand(ArmConstants.CORAL_L2_SCORING)
+                .andThen(new Command() {
+                    @Override
+                    public void execute() {
+                        startOutput();
+                    }
+                    @Override
+                    public boolean isFinished() {
+                        return !hasItem(); // Stop when item is no longer detected
+                    }
+                    @Override
+                    public void end(boolean interrupted) {
+                        stopRollers();
+                    }
+                });
+    }
+
+    public Command coralL1ScoringCommand() {
+        return getMoveToAngleCommand(ArmConstants.CORAL_L1_SCORING)
+                .andThen(new Command() {
+                    @Override
+                    public void execute() {
+                        startOutput();
+                    }
+                    @Override
+                    public boolean isFinished() {
+                        return !hasItem(); // Stop when item is no longer detected
+                    }
+                    @Override
+                    public void end(boolean interrupted) {
+                        stopRollers();
+                    }
+                });
+    }
+
+    // --- Algae Scoring Commands ---
+
+    public Command algaeBargeBeforeScoringCommand() {
+        return getMoveToAngleCommand(ArmConstants.ALGAE_BARGE_BEFORE_SCORING);
+    }
+
+    public Command algaeBargeScoringCommand() {
+        return getMoveToAngleCommand(ArmConstants.ALGAE_BARGE_SCORING)
+                .andThen(new Command() {
+                    @Override
+                    public void execute() {
+                        startOutput();
+                    }
+                    @Override
+                    public boolean isFinished() {
+                        return !hasItem(); // Stop when item is no longer detected
+                    }
+                    @Override
+                    public void end(boolean interrupted) {
+                        stopRollers();
+                    }
+                });
+    }
+
+    public Command algaeProcessorScoringCommand() {
+        return getMoveToAngleCommand(ArmConstants.ALGAE_PROCESSOR_SCORING)
+                .andThen(new Command() {
+                    @Override
+                    public void execute() {
+                        startOutput();
+                    }
+                    @Override
+                    public boolean isFinished() {
+                        return !hasItem(); // Stop when item is no longer detected
+                    }
+                    @Override
+                    public void end(boolean interrupted) {
+                        stopRollers();
+                    }
+                });
+    }
+
+    // --- General Commands ---
+
+    public Command runRollersCommand() {
+        return this.run(this::startIntake);
+    }
+
+    public Command stopRollersCommand() {
+        return this.runOnce(this::stopRollers);
+    }
+
+    public Command holdItemCommand() {
+        return this.run(this::holdItem);
     }
 }

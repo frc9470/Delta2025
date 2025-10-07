@@ -13,6 +13,7 @@ public class Superstructure extends SubsystemBase {
     private final Climber climber;
     private final FunnelControl funnelControl;
     private final Indexer indexer;
+    private final Arm arm;
     private final LEDs leds;
 
 
@@ -25,6 +26,7 @@ public class Superstructure extends SubsystemBase {
         this.climber = new Climber();
         this.funnelControl = new FunnelControl();
         this.indexer = new Indexer();
+        this.arm = new Arm();
     }
 
     // Returns a command to reverse the coral manipulator.
@@ -144,7 +146,91 @@ public class Superstructure extends SubsystemBase {
         return indexer;
     }
 
+    public Arm getArm() {
+        return arm;
+    }
+
     public Command scoreAndFunnel() {
         return coral.scoreAndFunnel();
+    }
+
+    // -- Scoring Commands (only elevator and arm) --
+
+    // Coral Scoring Commands
+    public Command scoreCoralL4() {
+        return new SequentialCommandGroup(
+                new ParallelCommandGroup(
+                        elevator.L4(),
+                        arm.coralL4BeforeScoringCommand()
+                ),
+                arm.coralL4ScoringCommand()
+        );
+    }
+
+    public Command scoreCoralL3() {
+        return new SequentialCommandGroup(
+                new ParallelCommandGroup(
+                        elevator.L3(),
+                        arm.coralL3BeforeScoringCommand()
+                ),
+                arm.coralL3ScoringCommand()
+        );
+    }
+
+    public Command scoreCoralL2() {
+        return new SequentialCommandGroup(
+                new ParallelCommandGroup(
+                        elevator.L2(),
+                        arm.coralL2BeforeScoringCommand()
+                ),
+                arm.coralL2ScoringCommand()
+        );
+    }
+
+    public Command scoreCoralL1() {
+        return new SequentialCommandGroup(
+                elevator.L1(),
+                arm.coralL1ScoringCommand()
+        );
+    }
+
+    // Algae Scoring Commands
+    public Command scoreAlgaeBarge() {
+        return new SequentialCommandGroup(
+                new ParallelCommandGroup(
+                        elevator.L4(),
+                        arm.algaeBargeBeforeScoringCommand()
+                ),
+                arm.algaeBargeScoringCommand()
+        );
+    }
+
+    public Command scoreAlgaeProcessor() {
+        return new SequentialCommandGroup(
+                elevator.L0(),
+                arm.algaeProcessorScoringCommand()
+        );
+    }
+
+    // Intake Commands
+    public Command intakeCoral() {
+        return new ParallelCommandGroup(
+                elevator.intake(), // Move to intake height
+                arm.coralIntakeCommand()
+        );
+    }
+
+    public Command intakeAlgaeGround() {
+        return new ParallelCommandGroup(
+                elevator.intake(), // Move to intake height
+                arm.algaeGroundIntakeCommand()
+        );
+    }
+
+    public Command intakeAlgaeReef() {
+        return new ParallelCommandGroup(
+                elevator.intake(), // Move to intake height
+                arm.algaeReefIntakeCommand()
+        );
     }
 }
