@@ -8,9 +8,11 @@ import com.team254.lib.drivers.TalonFXFactory;
 import com.team254.lib.drivers.TalonUtil;
 import com.team9470.Constants.ArmConstants;
 import com.team9470.Ports;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import static edu.wpi.first.units.Units.*;
@@ -96,7 +98,7 @@ public class Arm extends SubsystemBase {
         // Homing logic
         if (needsHoming) {
             updateHomingLogic();
-        } else {
+        } else if (homingState != HomingState.HOMED) {
             homingState = HomingState.IDLE;
         }
         periodicIO.homingState = homingState;
@@ -137,11 +139,11 @@ public class Arm extends SubsystemBase {
                     // Zero the sensor at the homing limit
                     pivotMotor.setPosition(ArmConstants.HOMING_ANGLE);
                     homingState = HomingState.HOMED;
+                    needsHoming = false;
                 }
                 break;
             case HOMED:
-                needsHoming = false;
-                homingState = HomingState.IDLE;
+                // Stay in HOMED state until explicitly re-homed
                 break;
         }
     }
@@ -176,6 +178,10 @@ public class Arm extends SubsystemBase {
     /** Set the desired target angle for the arm */
     public void setTargetAngle(Angle angle) {
         targetAngle = angle;
+        double minDegrees = ArmConstants.MIN_ANGLE.in(Degrees);
+        double maxDegrees = ArmConstants.MAX_ANGLE.in(Degrees);
+        double clamped = MathUtil.clamp(angle.in(Degrees), minDegrees, maxDegrees);
+        targetAngle = Degrees.of(clamped);
     }
 
     /** Get the current arm angle */
@@ -230,7 +236,7 @@ public class Arm extends SubsystemBase {
     public void triggerHoming() {
         needsHoming = true;
         homingState = HomingState.HOMING;
-        homingStartTime = periodicIO.timestamp;
+        homingStartTime = Seconds.of(Timer.getFPGATimestamp());;
     }
 
     /** Check if item is detected */
@@ -276,32 +282,16 @@ public class Arm extends SubsystemBase {
      * Returns a command that moves the arm to the specified angle
      */
     public Command getMoveToAngleCommand(Angle angle) {
-        return new Command() {
-            @Override
-            public void execute() {
-                setTargetAngle(angle);
-            }
-            @Override
-            public boolean isFinished() {
-                return getAngle().isNear(angle, Degrees.of(2));
-            }
-        };
+        return this.run(() -> setTargetAngle(angle))
+                .until(() -> getAngle().isNear(angle, Degrees.of(2)));
     }
 
     /**
      * Returns a command that starts homing the arm
      */
     public Command getHomingCommand() {
-        return new Command() {
-            @Override
-            public void execute() {
-                triggerHoming();
-            }
-            @Override
-            public boolean isFinished() {
-                return homingState == HomingState.HOMED;
-            }
-        };
+        return this.runOnce(this::triggerHoming)
+            .andThen(Commands.waitUntil(() -> homingState == HomingState.HOMED));
     }
 
     // --- Intake Commands ---
