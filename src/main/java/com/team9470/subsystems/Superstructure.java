@@ -14,6 +14,7 @@ public class Superstructure extends SubsystemBase {
     private final FunnelControl funnelControl;
     private final Indexer indexer;
     private final Arm arm;
+    private final Intake intake;
     private final LEDs leds;
 
 
@@ -27,6 +28,7 @@ public class Superstructure extends SubsystemBase {
         this.funnelControl = new FunnelControl();
         this.indexer = new Indexer();
         this.arm = new Arm();
+        this.intake = new Intake();
     }
 
     // Returns a command to reverse the coral manipulator.
@@ -148,6 +150,10 @@ public class Superstructure extends SubsystemBase {
 
     public Arm getArm() {
         return arm;
+    }
+
+    public Intake getIntake() {
+        return intake;
     }
 
     public Command scoreAndFunnel() {

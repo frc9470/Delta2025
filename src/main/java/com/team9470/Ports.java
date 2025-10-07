@@ -30,6 +30,9 @@ public class Ports {
     public static final CanDeviceId ARM_ANGLE = new CanDeviceId(0, "rio");
     public static final CanDeviceId ARM_ROLLERS = new CanDeviceId(1, "rio");
 
+    public static final CanDeviceId INTAKE_ARM = new CanDeviceId(25, "rio");
+    public static final CanDeviceId INTAKE_ROLLERS = new CanDeviceId(26, "rio");
+
     /**
      * Beam Break IDs
      */
