@@ -11,7 +11,7 @@ import com.team9470.Ports;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
+import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d; //changed import type from MechanismLigament2d to Mechanism2d to resolve error on line 18 of Superstructure.java
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -81,7 +81,7 @@ public class Intake extends SubsystemBase {
     }
     private final PeriodicIO periodicIO = new PeriodicIO();
 
-    public Intake(MechanismLigament2d mechanism) {
+    public Intake(Mechanism2d mechanism) { //changed input type from MechanismLigament2d to Mechanism2d to resolve error on line 18 of Superstructure.java
         // Create motor instances
         armMotor = TalonFXFactory.createDefaultTalon(Ports.INTAKE_ARM);
         rollerMotor = TalonFXFactory.createDefaultTalon(Ports.INTAKE_ROLLERS);
