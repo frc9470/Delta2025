@@ -11,7 +11,6 @@ import com.team9470.Ports;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -27,7 +26,7 @@ public class Intake extends SubsystemBase {
     // --- Hardware ---
     private final TalonFX armMotor;
     private final TalonFX rollerMotor;
-    private final DigitalInput coralSensor = new DigitalInput(Ports.CORAL_BREAK);
+    private final DigitalInput coralSensor = new DigitalInput(Ports.INDEXER_SENSOR);
 
     // --- Control objects ---
     private final MotionMagicVoltage motionMagic = new MotionMagicVoltage(0);

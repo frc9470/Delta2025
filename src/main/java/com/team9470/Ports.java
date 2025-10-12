@@ -26,4 +26,5 @@ public class Ports {
      * Sensor IDs
      */
     public static final int INDEXER_SENSOR = 1;
+    public static final int CORAL_BREAK = 0;
 }
