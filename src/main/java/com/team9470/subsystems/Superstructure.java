@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 public class Superstructure extends SubsystemBase {
     private final Elevator elevator;
     private final Indexer indexer;
+    private final Arm arm;
     private final Intake intake;
     private final LEDs leds;
 
@@ -15,7 +16,8 @@ public class Superstructure extends SubsystemBase {
         this.elevator = new Elevator(mech);
         this.leds = LEDs.getInstance();
         this.indexer = new Indexer();
-        this.intake = new Intake(mech);
+        this.arm = new Arm();
+        this.intake = new Intake();
     }
 
     public Command reverseCoral() {
@@ -83,11 +85,95 @@ public class Superstructure extends SubsystemBase {
         return indexer;
     }
 
+    public Arm getArm() {
+        return arm;
+    }
+
     public Intake getIntake() {
         return intake;
     }
 
     public Command scoreAndFunnel() {
         return indexer.outputCommand();
+    }
+
+    // -- Scoring Commands (only elevator and arm) --
+
+    // Coral Scoring Commands
+    public Command scoreCoralL4() {
+        return new SequentialCommandGroup(
+                new ParallelCommandGroup(
+                        elevator.L4(),
+                        arm.coralL4BeforeScoringCommand()
+                ),
+                arm.coralL4ScoringCommand()
+        );
+    }
+
+    public Command scoreCoralL3() {
+        return new SequentialCommandGroup(
+                new ParallelCommandGroup(
+                        elevator.L3(),
+                        arm.coralL3BeforeScoringCommand()
+                ),
+                arm.coralL3ScoringCommand()
+        );
+    }
+
+    public Command scoreCoralL2() {
+        return new SequentialCommandGroup(
+                new ParallelCommandGroup(
+                        elevator.L2(),
+                        arm.coralL2BeforeScoringCommand()
+                ),
+                arm.coralL2ScoringCommand()
+        );
+    }
+
+    public Command scoreCoralL1() {
+        return new SequentialCommandGroup(
+                elevator.L1(),
+                arm.coralL1ScoringCommand()
+        );
+    }
+
+    // Algae Scoring Commands
+    public Command scoreAlgaeBarge() {
+        return new SequentialCommandGroup(
+                new ParallelCommandGroup(
+                        elevator.L4(),
+                        arm.algaeBargeBeforeScoringCommand()
+                ),
+                arm.algaeBargeScoringCommand()
+        );
+    }
+
+    public Command scoreAlgaeProcessor() {
+        return new SequentialCommandGroup(
+                elevator.L0(),
+                arm.algaeProcessorScoringCommand()
+        );
+    }
+
+    // Intake Commands
+    public Command intakeCoral() {
+        return new ParallelCommandGroup(
+                elevator.intake(), // Move to intake height
+                arm.coralIntakeCommand()
+        );
+    }
+
+    public Command intakeAlgaeGround() {
+        return new ParallelCommandGroup(
+                elevator.intake(), // Move to intake height
+                arm.algaeGroundIntakeCommand()
+        );
+    }
+
+    public Command intakeAlgaeReef() {
+        return new ParallelCommandGroup(
+                elevator.intake(), // Move to intake height
+                arm.algaeReefIntakeCommand()
+        );
     }
 }

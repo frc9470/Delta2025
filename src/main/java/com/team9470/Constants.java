@@ -180,6 +180,81 @@ public final class Constants {
         }
     }
 
+    public static final class ArmConstants {
+        // Intake angles
+        public static final Angle CORAL_INTAKE_ANGLE = Degrees.of(0);
+        public static final Angle ALGAE_GROUND_INTAKE_ANGLE = Degrees.of(-45);
+        public static final Angle ALGAE_REEF_INTAKE_ANGLE = Degrees.of(45);
+        
+        // Coral scoring angles
+        public static final Angle CORAL_L4_BEFORE_SCORING = Degrees.of(10);
+        public static final Angle CORAL_L4_SCORING = Degrees.of(20);
+        public static final Angle CORAL_L3_BEFORE_SCORING = Degrees.of(15);
+        public static final Angle CORAL_L3_SCORING = Degrees.of(25);
+        public static final Angle CORAL_L2_BEFORE_SCORING = Degrees.of(20);
+        public static final Angle CORAL_L2_SCORING = Degrees.of(30);
+        public static final Angle CORAL_L1_SCORING = Degrees.of(35); // No before scoring
+        
+        // Algae scoring angles
+        public static final Angle ALGAE_BARGE_BEFORE_SCORING = Degrees.of(-20);
+        public static final Angle ALGAE_BARGE_SCORING = Degrees.of(-10);
+        public static final Angle ALGAE_PROCESSOR_SCORING = Degrees.of(-5); // No before scoring
+        
+        // Homing
+        public static final Angle HOMING_ANGLE = Degrees.of(-90);
+        public static final Current HOMING_THRESHOLD = Amps.of(8);
+        public static final Voltage HOMING_OUTPUT = Volts.of(-1.0);
+        public static final Time HOMING_TIMEOUT = Seconds.of(10);
+        
+        // Motion control
+        public static final double CRUISE_VELOCITY = 20;
+        public static final double ACCELERATION = 40;
+        public static final double JERK = 0;
+        
+        // Roller control
+        public static final Voltage ROLLER_INTAKE_SPEED = Volts.of(3.0);
+        public static final Voltage ROLLER_OUTPUT_SPEED = Volts.of(-2.0);
+        public static final Voltage ROLLER_HOLD_SPEED = Volts.of(0.5); // Stalls to hold items
+        
+        // Item detection
+        public static final Current ITEM_DETECTION_CURRENT = Amps.of(6.0);
+        
+        // Physical properties
+        public static final double GEAR_RATIO = 10;
+        public static final Mass ARM_MASS = Kilogram.of(3.0);
+        public static final Distance ARM_LENGTH = Meter.of(0.4);
+        public static final Angle MIN_ANGLE = Degrees.of(-95);
+        public static final Angle MAX_ANGLE = Degrees.of(95);
+        
+        public static TalonFXConfiguration getPivotConfig() {
+            TalonFXConfiguration config = new TalonFXConfiguration();
+            config.MotionMagic.MotionMagicCruiseVelocity = CRUISE_VELOCITY;
+            config.MotionMagic.MotionMagicAcceleration = ACCELERATION;
+            config.MotionMagic.MotionMagicJerk = JERK;
+            config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
+            config.Slot0.kP = 30;
+            config.Slot0.kI = 0.0;
+            config.Slot0.kD = 0.0;
+            config.Slot0.kG = 0.12;
+            config.Slot0.kS = 0.0;
+            config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
+            config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+            config.CurrentLimits.StatorCurrentLimitEnable = true;
+            config.CurrentLimits.StatorCurrentLimit = 50;
+            config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+            return config;
+        }
+        
+        public static TalonFXConfiguration getRollerConfig() {
+            TalonFXConfiguration config = new TalonFXConfiguration();
+            config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+            config.CurrentLimits.StatorCurrentLimitEnable = true;
+            config.CurrentLimits.StatorCurrentLimit = 30;
+            config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+            return config;
+        }
+    }
+
     public static final class DriverAssistConstants {
         // public static final Pose2d[] BLUE_REEF_POSITIONS = { // {x (m), y (m), angle (rad)}
         //     new Pose2d(3.7454309463500977, 5.406795501708984, new Rotation2d(-1.0584074157409784)),
