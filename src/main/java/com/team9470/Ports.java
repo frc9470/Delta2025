@@ -8,18 +8,17 @@ public class Ports {
      */
 
     //done
-    public static final CanDeviceId ELEVATOR_MAIN = new CanDeviceId(17, "rio");
-    public static final CanDeviceId ELEVATOR_FOLLOWER = new CanDeviceId(18, "rio");
+    // TODO: Tune ports.
+    public static final CanDeviceId ELEVATOR_MAIN = new CanDeviceId(30, "rio");
+    public static final CanDeviceId ELEVATOR_FOLLOWER = new CanDeviceId(31, "rio");
 
-    //placeholders:
     public static final CanDeviceId INDEXER_1 = new CanDeviceId(15, "rio");
     public static final CanDeviceId INDEXER_2 = new CanDeviceId(16, "rio");
 
     // TODO: Replace placeholders.
-    public static final CanDeviceId ARM_ANGLE = new CanDeviceId(17, "rio");
-    public static final CanDeviceId ARM_ROLLERS = new CanDeviceId(18, "rio");
+    public static final CanDeviceId ARM_ANGLE = new CanDeviceId(32, "rio");
+    public static final CanDeviceId ARM_ROLLERS = new CanDeviceId(33, "rio");
 
-    //done
     public static final CanDeviceId INTAKE_ARM = new CanDeviceId(14, "rio");
     public static final CanDeviceId INTAKE_ROLLERS = new CanDeviceId(13, "rio");
 

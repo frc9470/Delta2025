@@ -11,6 +11,7 @@ import com.team9470.Ports;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -125,6 +126,13 @@ public class Intake extends SubsystemBase {
         }
 
         writePeriodicOutputs();
+
+        // Logging data to SmartDashboard / telemetry sinks.
+        logTelemetry();
+    }
+
+    private void logTelemetry() {
+        SmartDashboard.putNumber("Intake/Position", periodicIO.position.in(Degrees));
     }
 
 
@@ -175,7 +183,7 @@ public class Intake extends SubsystemBase {
     private void writePeriodicOutputs() {
         if (homingState == HomingState.HOMING) {
             armMotor.setControl(homingVoltage);
-            periodicIO.setpointAngle = Degrees.of(0);
+            periodicIO.setpointAngle = IntakeConstants.HOMING_ANGLE;
         } else {
             armMotor.setControl(
                     motionMagic.withPosition(targetAngle)

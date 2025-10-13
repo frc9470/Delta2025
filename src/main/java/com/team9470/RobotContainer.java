@@ -102,8 +102,9 @@ public class RobotContainer {
             button.whileTrue(new InstantCommand(() -> autoScoring.setBranch(id)));
         }
 
-        xbox.rightTrigger()
-                .whileTrue(autoScoring.autoScore(superstructure)).onFalse(superstructure.getElevator().L0());
+//        xbox.rightTrigger()
+//                .whileTrue(autoScoring.autoScore(superstructure)).onFalse(superstructure.getElevator().L0());
+        xbox.rightTrigger().whileTrue(superstructure.intakeCoral());
 
 
         xbox.y()

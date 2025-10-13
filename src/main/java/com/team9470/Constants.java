@@ -125,11 +125,14 @@ public final class Constants {
     }
 
     public static final class IntakeConstants {
+        // Range of motion: when fully down, is at -149... when up
+        // 28 is the center of gravity; 118 is horizontal, 149 is fully down
+
         // Arm positions
-        public static final Angle RETRACTED_ANGLE = Degrees.of(0); // Retracted position
-        public static final Angle DOWN_ANGLE = Degrees.of(-90); // Down position for ground intake
-        public static final Angle HOMING_ANGLE = DOWN_ANGLE; // Use down position for homing
-        
+        public static final Angle RETRACTED_ANGLE = Degrees.of(118); // Retracted position
+        public static final Angle DOWN_ANGLE = Degrees.of(-32); // Down position for ground intake
+        public static final Angle HOMING_ANGLE = RETRACTED_ANGLE; // Use down position for homing
+
         // Motion control
         public static final double CRUISE_VELOCITY = 15; // degrees per second
         public static final double ACCELERATION = 30; // degrees per second squared
@@ -137,7 +140,7 @@ public final class Constants {
         
         // Homing
         public static final Current HOMING_THRESHOLD = Amps.of(8); // Current threshold for homing
-        public static final Voltage HOMING_OUTPUT = Volts.of(-1.0); // Homing voltage
+        public static final Voltage HOMING_OUTPUT = Volts.of(1.0); // Homing voltage
         public static final Time HOMING_TIMEOUT = Seconds.of(10); // Homing timeout
         
         // Roller control
@@ -145,7 +148,8 @@ public final class Constants {
         public static final Voltage ROLLER_REVERSE_SPEED = Volts.of(-2.0); // Roller reverse speed
         
         // Physical properties
-        public static final double GEAR_RATIO = 10; // Arm gear ratio
+        // TODO: Tested to be 28.787878, originally 10
+        public static final double GEAR_RATIO = 28.78; // Arm gear ratio
         public static final Mass ARM_MASS = Kilogram.of(2.0); // Arm mass in kg
         public static final Distance ARM_LENGTH = Meter.of(0.3); // Arm length in meters
         public static final Angle MIN_ANGLE = Degrees.of(-95); // Minimum angle
