@@ -10,11 +10,9 @@ public class Superstructure extends SubsystemBase {
     private final Indexer indexer;
     private final Arm arm;
     private final Intake intake;
-    private final LEDs leds;
 
     public Superstructure(Mechanism2d mech) {
         this.elevator = new Elevator(mech);
-        this.leds = LEDs.getInstance();
         this.indexer = new Indexer();
         this.arm = new Arm();
         this.intake = new Intake();
@@ -75,10 +73,6 @@ public class Superstructure extends SubsystemBase {
     // Accessors for the individual subsystems.
     public Elevator getElevator() {
         return elevator;
-    }
-
-    public LEDs getLEDs() {
-        return leds;
     }
 
     public Indexer getIndexer() {

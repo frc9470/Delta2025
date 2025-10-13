@@ -112,19 +112,5 @@ public class RobotContainer {
         xbox.rightStick().whileTrue(new InstantCommand(autoScoring::updateClosestReefPos));
 
         xbox.povRight().whileTrue(superstructure.scoreAndFunnel());
-//        xbox.povUp().whileTrue(superstructure.raise(3));
-//        xbox.povDown().whileTrue(superstructure.getElevator().L0());
-
-
-
-//        xbox.povUp().and(xbox.back()).whileTrue(drivetrain.sysIdDynamic(SysIdRoutine.Direction.kForward));
-//        xbox.povDown().and(xbox.back()).whileTrue(drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-//
-//
-//        xbox.povUp().and(xbox.start()).whileTrue(drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-//        xbox.povDown().and(xbox.start()).whileTrue(drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-
-//        xbox.back().whileTrue(new InstantCommand(() -> Constants.ElevatorConstants.L4 = Meters.of(1.45)));
-
     }
 }

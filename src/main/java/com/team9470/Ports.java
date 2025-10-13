@@ -8,23 +8,20 @@ public class Ports {
      */
 
     //done
-    public static final CanDeviceId ELEVATOR_MAIN = new CanDeviceId(11, "rio");
-    public static final CanDeviceId ELEVATOR_FOLLOWER = new CanDeviceId(12, "rio");
-
-    //placeholder
-    public static final CanDeviceId CANdle = new CanDeviceId(20, "rio");
+    public static final CanDeviceId ELEVATOR_MAIN = new CanDeviceId(17, "rio");
+    public static final CanDeviceId ELEVATOR_FOLLOWER = new CanDeviceId(18, "rio");
 
     //placeholders:
-    public static final CanDeviceId INDEXER_1 = new CanDeviceId(0, "rio");
-    public static final CanDeviceId INDEXER_2 = new CanDeviceId(1, "rio");
+    public static final CanDeviceId INDEXER_1 = new CanDeviceId(15, "rio");
+    public static final CanDeviceId INDEXER_2 = new CanDeviceId(16, "rio");
 
     // TODO: Replace placeholders.
-    public static final CanDeviceId ARM_ANGLE = new CanDeviceId(0, "rio");
-    public static final CanDeviceId ARM_ROLLERS = new CanDeviceId(1, "rio");
+    public static final CanDeviceId ARM_ANGLE = new CanDeviceId(17, "rio");
+    public static final CanDeviceId ARM_ROLLERS = new CanDeviceId(18, "rio");
 
     //done
-    public static final CanDeviceId INTAKE_ARM = new CanDeviceId(9, "rio");
-    public static final CanDeviceId INTAKE_ROLLERS = new CanDeviceId(10, "rio");
+    public static final CanDeviceId INTAKE_ARM = new CanDeviceId(14, "rio");
+    public static final CanDeviceId INTAKE_ROLLERS = new CanDeviceId(13, "rio");
 
     /**
      * Sensor IDs
