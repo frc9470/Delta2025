@@ -33,42 +33,30 @@ public final class Constants {
     }
 
     public static final class ElevatorConstants {
-        // Physical geometry
-        // For example: .0150m per rotation
-        // Convert to meters for internal usage
         public static final Distance DIST_PER_ROTATION =
-                Meter.of(.015);
+                Meter.of(.15);
         public static final double rotationsPerMeter = 1.0 / DIST_PER_ROTATION.in(Meters);
         public static final double GEAR_RATIO = 52. / 11;
         public static final double MASS = 3.46;
         public static final double DRUM_RADIUS = DIST_PER_ROTATION.in(Meter) / (2 * Math.PI);
 
-        // Gains
-        public static final double kP = 27;
-        public static final double kG = 0.23;
-        public static final double kD = 1;
-        // etc...
-
         // Motion config
-        public static final LinearVelocity CRUISE_VELOCITY = Units.MetersPerSecond.of(4.44);
-        public static final LinearAcceleration ACCELERATION = MetersPerSecondPerSecond.of(35.37);
+        public static final LinearVelocity CRUISE_VELOCITY = Units.MetersPerSecond.of(3);
+        public static final LinearAcceleration ACCELERATION = MetersPerSecondPerSecond.of(20);
         public static final double JERK = 0;
 
         // Homing
-        public static final Voltage HOMING_OUTPUT = Units.Volts.of(-2.0);
-        public static final LinearVelocity HOMING_MAX_VELOCITY = Units.MetersPerSecond.of(0.1);
-        public static final Distance HOMING_ZONE = Meters.of(0.1);
+        public static final Voltage HOMING_OUTPUT = Units.Volts.of(-1.0);
         public static final Time HOMING_TIMEOUT = Units.Seconds.of(10);
 
         // Current limits
-        public static final double STALL_CURRENT = 40; // example
 
         public static final Distance HOME_POSITION = Meters.of(0);
         public static final Distance L0 = Meters.of(0.0); // INTAKE
         public static final Distance L1 = Meters.of(0.2);
         public static final Distance L2 = Meters.of(.43);
         public static final Distance L3 = Meters.of(.84);
-        public static final Distance L4 = Meters.of(1.47);
+        public static final Distance L4 = Meters.of(1.1);
         public static final Distance INTAKE = Meters.of(0);
 
 
@@ -79,24 +67,24 @@ public final class Constants {
             config.MotionMagic.MotionMagicAcceleration = ACCELERATION.in(MetersPerSecondPerSecond) * rotationsPerMeter;
             config.MotionMagic.MotionMagicJerk = JERK;
             config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
-            config.Slot0.kP = kP;
+            config.Slot0.kP = 5;
             config.Slot0.kI = 0.0;
-            config.Slot0.kD = kD;
-            config.Slot0.kG = kG;
+            config.Slot0.kD = 1;
+            config.Slot0.kG = 0.23;
             config.Slot0.kS = 0.05;
             config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
-            config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+            config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
             config.CurrentLimits.StatorCurrentLimitEnable = true;
-            config.CurrentLimits.StatorCurrentLimit = 90;
+            config.CurrentLimits.StatorCurrentLimit = 40;
             config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
             return config;
         }
 
         public static TalonFXConfiguration ElevatorFXConfigFollower(){
             TalonFXConfiguration config = new TalonFXConfiguration();
-            config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+            config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
             config.CurrentLimits.StatorCurrentLimitEnable = true;
-            config.CurrentLimits.StatorCurrentLimit = 90;
+            config.CurrentLimits.StatorCurrentLimit = 40;
             return config;
         }
     }

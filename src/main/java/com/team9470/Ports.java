@@ -7,10 +7,9 @@ public class Ports {
      * Motor IDs
      */
 
-    //done
     // TODO: Tune ports.
-    public static final CanDeviceId ELEVATOR_MAIN = new CanDeviceId(30, "rio");
-    public static final CanDeviceId ELEVATOR_FOLLOWER = new CanDeviceId(31, "rio");
+    public static final CanDeviceId ELEVATOR_MAIN = new CanDeviceId(17, "rio");
+    public static final CanDeviceId ELEVATOR_FOLLOWER = new CanDeviceId(18, "rio");
 
     public static final CanDeviceId INDEXER_1 = new CanDeviceId(15, "rio");
     public static final CanDeviceId INDEXER_2 = new CanDeviceId(16, "rio");

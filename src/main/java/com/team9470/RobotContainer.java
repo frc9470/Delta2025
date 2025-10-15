@@ -87,31 +87,10 @@ public class RobotContainer {
         // Reset field-centric heading
         xbox.x().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
-        // Example of binding elevator level commands via the superstructure's elevator
-        for (int i = 0; i < 4; i++) {
-            final int id = i;
-            Trigger trig = new Trigger(() -> (id < 2) ? buttonBoard.getX() == Math.pow(-1.0, id + 1)
-                    : buttonBoard.getY() == Math.pow(-1.0, id));
-            trig.whileTrue(new InstantCommand(() -> autoScoring.setLevel(id + 1)));
-        }
+        xbox.y().onTrue(superstructure.getElevator().L3());
+        xbox.x().onTrue(superstructure.getElevator().L1());
 
-        // Reef position bindings (remaining unchanged)
-        for (int i = 0; i < 12; i++) {
-            JoystickButton button = new JoystickButton(buttonBoard, i+1);
-            final int id = i;
-            button.whileTrue(new InstantCommand(() -> autoScoring.setBranch(id)));
-        }
-
-//        xbox.rightTrigger()
-//                .whileTrue(autoScoring.autoScore(superstructure)).onFalse(superstructure.getElevator().L0());
         xbox.rightTrigger().whileTrue(superstructure.intakeCoral());
 
-
-        xbox.y()
-                        .whileTrue(autoScoring.autoScoreNoDrive(superstructure));
-
-        xbox.rightStick().whileTrue(new InstantCommand(autoScoring::updateClosestReefPos));
-
-        xbox.povRight().whileTrue(superstructure.scoreAndFunnel());
     }
 }
