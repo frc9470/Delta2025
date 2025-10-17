@@ -104,14 +104,42 @@ public class RobotContainer {
 
 //        xbox.rightTrigger()
 //                .whileTrue(autoScoring.autoScore(superstructure)).onFalse(superstructure.getElevator().L0());
-        xbox.rightTrigger().whileTrue(superstructure.intakeCoral());
+        xbox.rightTrigger().onTrue(superstructure.coralCradlePickup());
+        xbox.rightBumper().onTrue(superstructure.algaeGroundPickup());
 
+        xbox.a()
+                .onTrue(new InstantCommand(() -> autoScoring.setLevel(1))
+                        .andThen(superstructure.prepareLevel(Superstructure.Level.L1)))
+                .onFalse(superstructure.scoreHeldPiece());
+
+        xbox.b()
+                .onTrue(new InstantCommand(() -> autoScoring.setLevel(2))
+                        .andThen(superstructure.prepareLevel(Superstructure.Level.L2)))
+                .onFalse(superstructure.scoreHeldPiece());
+
+        xbox.x()
+                .onTrue(new InstantCommand(() -> autoScoring.setLevel(3))
+                        .andThen(superstructure.prepareLevel(Superstructure.Level.L3)))
+                .onFalse(superstructure.scoreHeldPiece());
 
         xbox.y()
-                        .whileTrue(autoScoring.autoScoreNoDrive(superstructure));
+                .onTrue(new InstantCommand(() -> autoScoring.setLevel(4))
+                        .andThen(superstructure.prepareLevel(Superstructure.Level.L4)))
+                .onFalse(superstructure.scoreHeldPiece());
+
+        xbox.leftTrigger().whileTrue(autoScoring.autoScore(superstructure));
 
         xbox.rightStick().whileTrue(new InstantCommand(autoScoring::updateClosestReefPos));
 
         xbox.povRight().whileTrue(superstructure.scoreAndFunnel());
+
+        // ---------------- DEBUG BINDINGS --------------------
+        // Simple helpers to manually command the arm/elevator without the full state machine.
+        // Comment/uncomment the examples below to test different poses as needed.
+        xbox.back().onTrue(superstructure.debugArmToAngle(Degrees.of(0)));
+//        xbox.back().onTrue(superstructure.debugArmToAngle(Degrees.of(-45)));
+
+        xbox.start().onTrue(superstructure.debugElevatorToHeight(Meters.of(0.6)));
+//        xbox.start().onTrue(superstructure.debugElevatorToHeight(Meters.of(1.1)));
     }
 }

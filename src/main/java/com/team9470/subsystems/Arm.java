@@ -153,8 +153,11 @@ public class Arm extends SubsystemBase {
         // Check if rollers are drawing high current (indicating item resistance)
         boolean rollerHighCurrent = periodicIO.rollerCurrent.gte(ArmConstants.ITEM_DETECTION_CURRENT);
         
-        // Item is detected based on roller current draw
-        hasItem = rollerHighCurrent;
+        if (rollerHighCurrent) {
+            hasItem = true;
+        } else if (!holdingItem) {
+            hasItem = false;
+        }
         
         // If we have an item and rollers are running, switch to hold mode
         if (hasItem && rollersRunning && !holdingItem) {
@@ -209,6 +212,7 @@ public class Arm extends SubsystemBase {
         rollerMotor.setVoltage(ArmConstants.ROLLER_INTAKE_SPEED.in(Volts));
         rollersRunning = true;
         holdingItem = false;
+        hasItem = false;
     }
 
     /** Start output rollers */
@@ -257,13 +261,36 @@ public class Arm extends SubsystemBase {
     /** Set item type being held */
     public void setHoldingCoral(boolean holding) {
         holdingCoral = holding;
-        holdingAlgae = !holding;
+        if (holding) {
+            holdingAlgae = false;
+        }
+        if (!holding) {
+            holdingItem = false;
+        } else {
+            holdingItem = true;
+        }
     }
 
     /** Set item type being held */
     public void setHoldingAlgae(boolean holding) {
         holdingAlgae = holding;
-        holdingCoral = !holding;
+        if (holding) {
+            holdingCoral = false;
+        }
+        if (!holding) {
+            holdingItem = false;
+        } else {
+            holdingItem = true;
+        }
+
+    }
+
+    /** Clears knowledge of held game pieces. */
+    public void clearGamePieceFlags() {
+        holdingCoral = false;
+        holdingAlgae = false;
+        holdingItem = false;
+        hasItem = false;
     }
 
     /** Check if holding coral */
@@ -274,6 +301,16 @@ public class Arm extends SubsystemBase {
     /** Check if holding algae */
     public boolean isHoldingAlgae() {
         return holdingAlgae;
+    }
+
+    /** Command to move the arm to the stow angle. */
+    public Command stowCommand() {
+        return getMoveToAngleCommand(ArmConstants.STOW_ANGLE);
+    }
+
+    /** Returns whether the arm is close to the stow position. */
+    public boolean isStowed() {
+        return getAngle().isNear(ArmConstants.STOW_ANGLE, Degrees.of(3));
     }
 
     // --- Command Methods ---
@@ -395,6 +432,10 @@ public class Arm extends SubsystemBase {
                         stopRollers();
                     }
                 });
+    }
+
+    public Command coralL1BeforeScoringCommand() {
+        return getMoveToAngleCommand(ArmConstants.CORAL_L1_BEFORE_SCORING);
     }
 
     // --- Algae Scoring Commands ---
