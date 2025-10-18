@@ -11,6 +11,7 @@ import com.team9470.Ports;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -36,6 +37,10 @@ public class Arm extends SubsystemBase {
     private final StatusSignal<AngularVelocity> velocitySignal = pivotMotor.getVelocity();
     private final StatusSignal<Current> pivotCurrentSignal = pivotMotor.getStatorCurrent();
     private final StatusSignal<Current> rollerCurrentSignal = rollerMotor.getStatorCurrent();
+    private final StatusSignal<Voltage> pivotVoltageSignal = pivotMotor.getMotorVoltage();
+    private final StatusSignal<Voltage> rollerVoltageSignal = rollerMotor.getMotorVoltage();
+
+    private final StatusSignal<Double> setpointPositionSignal;
 
     // --- State tracking ---
     private boolean rollersRunning = false;
@@ -65,6 +70,10 @@ public class Arm extends SubsystemBase {
         public Time timestamp;
         public Angle position;
         public AngularVelocity velocity;
+
+        public Voltage pivotVoltage;
+        public Voltage rollerVoltage;
+
         public Current pivotCurrent;
         public Current rollerCurrent;
 
@@ -74,6 +83,8 @@ public class Arm extends SubsystemBase {
         public boolean rollersRunning;
         public boolean hasItem;
         public boolean holdingItem;
+
+        public double setpointPositionRotations;
     }
     private final PeriodicIO periodicIO = new PeriodicIO();
 
@@ -89,6 +100,9 @@ public class Arm extends SubsystemBase {
         velocitySignal.setUpdateFrequency(refreshRate, 0.1);
         pivotCurrentSignal.setUpdateFrequency(refreshRate, 0.1);
         rollerCurrentSignal.setUpdateFrequency(refreshRate, 0.1);
+
+        setpointPositionSignal = pivotMotor.getClosedLoopReference();
+        setpointPositionSignal.setUpdateFrequency(refreshRate, 0.1);
     }
 
     @Override
@@ -107,6 +121,35 @@ public class Arm extends SubsystemBase {
         updateItemDetection();
 
         writePeriodicOutputs();
+
+        logTelemetry();
+    }
+
+    private void logTelemetry() {
+        // Actual sensor readings
+        SmartDashboard.putNumber("Arm/Position_deg", periodicIO.position.in(Degrees));
+        SmartDashboard.putNumber("Arm/Velocity_dps", periodicIO.velocity.in(DegreesPerSecond));
+
+        SmartDashboard.putNumber("Arm/PivotCurrent_A", periodicIO.pivotCurrent.in(Amps));
+        SmartDashboard.putNumber("Arm/RollerCurrent_A", periodicIO.rollerCurrent.in(Amps));
+
+        SmartDashboard.putNumber("Arm/PivotVoltage_V", periodicIO.pivotVoltage.in(Volts));
+        SmartDashboard.putNumber("Arm/RollerVoltage_V", periodicIO.rollerVoltage.in(Volts));
+
+        // Target and goal
+        SmartDashboard.putNumber("Arm/TargetAngle_deg", targetAngle.in(Degrees));
+        SmartDashboard.putNumber("Arm/Goal_deg", periodicIO.goal.in(Degrees));
+
+        // Homing info
+        SmartDashboard.putString("Arm/HomingState", periodicIO.homingState.toString());
+        SmartDashboard.putBoolean("Arm/NeedsHoming", needsHoming);
+
+        // Item detection / roller state
+        SmartDashboard.putBoolean("Arm/RollersRunning", periodicIO.rollersRunning);
+        SmartDashboard.putBoolean("Arm/HasItem", periodicIO.hasItem);
+        SmartDashboard.putBoolean("Arm/HoldingItem", periodicIO.holdingItem);
+
+        SmartDashboard.putNumber("Arm/Setpoint/Position_Deg", periodicIO.setpointPositionRotations * 360);
     }
 
     /** Read sensor values into PeriodicIO structure */
@@ -116,10 +159,16 @@ public class Arm extends SubsystemBase {
         periodicIO.velocity = velocitySignal.asSupplier().get();
         periodicIO.pivotCurrent = pivotCurrentSignal.asSupplier().get();
         periodicIO.rollerCurrent = rollerCurrentSignal.asSupplier().get();
+
+        periodicIO.pivotVoltage = pivotVoltageSignal.asSupplier().get();
+        periodicIO.rollerVoltage = rollerVoltageSignal.asSupplier().get();
+
         periodicIO.goal = targetAngle;
         periodicIO.rollersRunning = rollersRunning;
         periodicIO.hasItem = hasItem;
         periodicIO.holdingItem = holdingItem;
+
+        periodicIO.setpointPositionRotations = setpointPositionSignal.asSupplier().get();
     }
 
     /** Run homing state machine logic */
@@ -482,9 +531,11 @@ public class Arm extends SubsystemBase {
 
     // --- General Commands ---
 
-    public Command runRollersCommand() {
+    public Command runIntakeCommand() {
         return this.run(this::startIntake);
     }
+
+    public Command runOuttakeCommand() { return this.run(this::startOutput); }
 
     public Command stopRollersCommand() {
         return this.runOnce(this::stopRollers);

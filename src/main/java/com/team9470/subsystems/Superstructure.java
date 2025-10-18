@@ -5,7 +5,6 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj2.command.*;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -62,36 +61,37 @@ public class Superstructure extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (autoPickupCommand != null && !autoPickupCommand.isScheduled()) {
-            autoPickupCommand = null;
-        }
+        // TODO: Re-enable
+//        if (autoPickupCommand != null && !autoPickupCommand.isScheduled()) {
+//            autoPickupCommand = null;
+//        }
+//
+//        boolean cradle = indexer.isCoralInCradle();
+//        boolean newlyDetected = cradle && pieceState == GamePieceState.EMPTY;
+//        boolean cradleCleared = !cradle && pieceState == GamePieceState.CORAL_IN_CRADLE;
 
-        boolean cradle = indexer.isCoralInCradle();
-        boolean newlyDetected = cradle && pieceState == GamePieceState.EMPTY;
-        boolean cradleCleared = !cradle && pieceState == GamePieceState.CORAL_IN_CRADLE;
+//        if (newlyDetected) {
+//            pieceState = GamePieceState.CORAL_IN_CRADLE;
+//
+//            if (!arm.isHoldingItem() && autoPickupCommand == null) {
+//                autoPickupCommand = coralCradlePickup();
+//                CommandScheduler.getInstance().schedule(autoPickupCommand);
+//            }
+//        } else if (cradleCleared) {
+//            pieceState = GamePieceState.EMPTY;
+//        }
 
-        if (newlyDetected) {
-            pieceState = GamePieceState.CORAL_IN_CRADLE;
-
-            if (!arm.isHoldingItem() && autoPickupCommand == null) {
-                autoPickupCommand = coralCradlePickup();
-                CommandScheduler.getInstance().schedule(autoPickupCommand);
-            }
-        } else if (cradleCleared) {
-            pieceState = GamePieceState.EMPTY;
-        }
-
-        if (!arm.isHoldingItem()) {
-            if (pieceState == GamePieceState.CORAL_IN_ARM) {
-                pieceState = cradle ? GamePieceState.CORAL_IN_CRADLE : GamePieceState.EMPTY;
-                arm.setHoldingCoral(false);
-                activeMode = Mode.NONE;
-            } else if (pieceState == GamePieceState.ALGAE_IN_ARM) {
-                pieceState = cradle ? GamePieceState.CORAL_IN_CRADLE : GamePieceState.EMPTY;
-                arm.setHoldingAlgae(false);
-                activeMode = Mode.NONE;
-            }
-        }
+//        if (!arm.isHoldingItem()) {
+//            if (pieceState == GamePieceState.CORAL_IN_ARM) {
+//                pieceState = cradle ? GamePieceState.CORAL_IN_CRADLE : GamePieceState.EMPTY;
+//                arm.setHoldingCoral(false);
+//                activeMode = Mode.NONE;
+//            } else if (pieceState == GamePieceState.ALGAE_IN_ARM) {
+//                pieceState = cradle ? GamePieceState.CORAL_IN_CRADLE : GamePieceState.EMPTY;
+//                arm.setHoldingAlgae(false);
+//                activeMode = Mode.NONE;
+//            }
+//        }
     }
 
     public Command reverseCoral() {
@@ -174,51 +174,52 @@ public class Superstructure extends SubsystemBase {
         return pieceState == GamePieceState.ALGAE_IN_ARM;
     }
 
-    public Command coralCradlePickup() {
-        return Commands.sequence(
-                Commands.waitUntil(indexer::isCoralInCradle),
-                Commands.runOnce(() -> {
-                    arm.clearGamePieceFlags();
-                    activeMode = Mode.NONE;
-                }),
-                new ParallelCommandGroup(
-                        elevator.L1(),
-                        arm.getMoveToAngleCommand(ArmConstants.CORAL_HANDOFF_PREP_ANGLE)
-                ),
-                new ParallelDeadlineGroup(
-                        Commands.waitUntil(arm::hasItem).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
-                        new ParallelCommandGroup(
-                                elevator.L0(),
-                                arm.getMoveToAngleCommand(ArmConstants.CORAL_HANDOFF_PICKUP_ANGLE),
-                                Commands.startEnd(arm::startIntake, arm::stopRollers, arm)
-                        )
-                ),
-                Commands.runOnce(() -> {
-                    if (arm.hasItem()) {
-                        arm.holdItem();
-                        arm.setHoldingCoral(true);
-                        pieceState = GamePieceState.CORAL_IN_ARM;
-                        activeMode = Mode.CORAL;
-                        currentLevel = Level.L1;
-                    } else {
-                        arm.stopRollers();
-                        arm.clearGamePieceFlags();
-                        pieceState = indexer.isCoralInCradle()
-                                ? GamePieceState.CORAL_IN_CRADLE
-                                : GamePieceState.EMPTY;
-                        activeMode = Mode.NONE;
-                    }
-                }),
-                new ParallelCommandGroup(
-                        elevator.L1(),
-                        arm.getMoveToAngleCommand(ArmConstants.CORAL_HANDOFF_PREP_ANGLE)
-                ),
-                new ParallelCommandGroup(
-                        elevator.L0(),
-                        arm.stowCommand()
-                )
-        ).withName("CoralCradlePickup");
-    }
+    // TODO: Fix illegal function
+//    public Command coralCradlePickup() {
+//        return Commands.sequence(
+//                Commands.waitUntil(indexer::isCoralInCradle),
+//                Commands.runOnce(() -> {
+//                    arm.clearGamePieceFlags();
+//                    activeMode = Mode.NONE;
+//                }),
+//                new ParallelCommandGroup(
+//                        elevator.L1(),
+//                        arm.getMoveToAngleCommand(ArmConstants.CORAL_HANDOFF_PREP_ANGLE)
+//                ),
+//                new ParallelDeadlineGroup(
+//                        Commands.waitUntil(arm::hasItem).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
+//                        new ParallelCommandGroup(
+//                                elevator.L0(),
+//                                arm.getMoveToAngleCommand(ArmConstants.CORAL_HANDOFF_PICKUP_ANGLE),
+//                                Commands.startEnd(arm::startIntake, arm::stopRollers, arm)
+//                        )
+//                ),
+//                Commands.runOnce(() -> {
+//                    if (arm.hasItem()) {
+//                        arm.holdItem();
+//                        arm.setHoldingCoral(true);
+//                        pieceState = GamePieceState.CORAL_IN_ARM;
+//                        activeMode = Mode.CORAL;
+//                        currentLevel = Level.L1;
+//                    } else {
+//                        arm.stopRollers();
+//                        arm.clearGamePieceFlags();
+//                        pieceState = indexer.isCoralInCradle()
+//                                ? GamePieceState.CORAL_IN_CRADLE
+//                                : GamePieceState.EMPTY;
+//                        activeMode = Mode.NONE;
+//                    }
+//                }),
+//                new ParallelCommandGroup(
+//                        elevator.L1(),
+//                        arm.getMoveToAngleCommand(ArmConstants.CORAL_HANDOFF_PREP_ANGLE)
+//                ),
+//                new ParallelCommandGroup(
+//                        elevator.L0(),
+//                        arm.stowCommand()
+//                )
+//        ).withName("CoralCradlePickup");
+//    }
 
     public Command algaeGroundPickup() {
         return Commands.sequence(
@@ -444,9 +445,10 @@ public class Superstructure extends SubsystemBase {
         return algaePrepare(Level.L1).andThen(algaeScore(Level.L1));
     }
 
-    public Command intakeCoral() {
-        return coralCradlePickup();
-    }
+    // TODO: re-enable
+//    public Command intakeCoral() {
+//        return coralCradlePickup();
+//    }
 
     public Command intakeAlgaeGround() {
         return algaeGroundPickup();
@@ -488,5 +490,26 @@ public class Superstructure extends SubsystemBase {
                 debugElevatorToHeight(height),
                 debugArmToAngle(angle)
         ).withName("DebugPose");
+    }
+
+    // TODO: Remove after testing.
+    public Command moveArmToAngle(Angle angle) {
+        return arm.getMoveToAngleCommand(angle);
+    }
+
+    public Command moveElevatorToHeight(Distance height) {
+        return elevator.getMoveToPositionCommand(height);
+    }
+
+    public Command armIntake() {
+        return arm.runIntakeCommand();
+    }
+
+    public Command armOuttake() {
+        return arm.runOuttakeCommand();
+    }
+
+    public Command armStop() {
+        return arm.stopRollersCommand();
     }
 }

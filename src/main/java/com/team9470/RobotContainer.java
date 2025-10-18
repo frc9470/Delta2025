@@ -18,6 +18,9 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
+// TODO: Remove after debug done.
+import static com.team9470.Constants.*;
+
 import static edu.wpi.first.units.Units.*;
 
 public class RobotContainer {
@@ -84,54 +87,96 @@ public class RobotContainer {
                 )
         );
 
-        // Reset field-centric heading
-        xbox.x().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
-
-        // Example of binding elevator level commands via the superstructure's elevator
-        for (int i = 0; i < 4; i++) {
-            final int id = i;
-            Trigger trig = new Trigger(() -> (id < 2) ? buttonBoard.getX() == Math.pow(-1.0, id + 1)
-                    : buttonBoard.getY() == Math.pow(-1.0, id));
-            trig.whileTrue(new InstantCommand(() -> autoScoring.setLevel(id + 1)));
-        }
-
-        // Reef position bindings (remaining unchanged)
-        for (int i = 0; i < 12; i++) {
-            JoystickButton button = new JoystickButton(buttonBoard, i+1);
-            final int id = i;
-            button.whileTrue(new InstantCommand(() -> autoScoring.setBranch(id)));
-        }
+//        // Reset field-centric heading
+//        xbox.x().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
+//
+//        // Example of binding elevator level commands via the superstructure's elevator
+//        for (int i = 0; i < 4; i++) {
+//            final int id = i;
+//            Trigger trig = new Trigger(() -> (id < 2) ? buttonBoard.getX() == Math.pow(-1.0, id + 1)
+//                    : buttonBoard.getY() == Math.pow(-1.0, id));
+//            trig.whileTrue(new InstantCommand(() -> autoScoring.setLevel(id + 1)));
+//        }
+//
+//        // Reef position bindings (remaining unchanged)
+//        for (int i = 0; i < 12; i++) {
+//            JoystickButton button = new JoystickButton(buttonBoard, i+1);
+//            final int id = i;
+//            button.whileTrue(new InstantCommand(() -> autoScoring.setBranch(id)));
+//        }
 
 //        xbox.rightTrigger()
 //                .whileTrue(autoScoring.autoScore(superstructure)).onFalse(superstructure.getElevator().L0());
-        xbox.rightTrigger().onTrue(superstructure.coralCradlePickup());
-        xbox.rightBumper().onTrue(superstructure.algaeGroundPickup());
+        // TODO: Remove / verify.
+//        xbox.rightTrigger().onTrue(superstructure.coralCradlePickup());
+//        xbox.rightBumper().onTrue(superstructure.algaeGroundPickup());
 
         xbox.a()
-                .onTrue(new InstantCommand(() -> autoScoring.setLevel(1))
-                        .andThen(superstructure.prepareLevel(Superstructure.Level.L1)))
-                .onFalse(superstructure.scoreHeldPiece());
+            .onTrue(
+                superstructure.moveArmToAngle(Degrees.of(90))
+            );
 
         xbox.b()
-                .onTrue(new InstantCommand(() -> autoScoring.setLevel(2))
-                        .andThen(superstructure.prepareLevel(Superstructure.Level.L2)))
-                .onFalse(superstructure.scoreHeldPiece());
+            .onTrue(
+                superstructure.moveArmToAngle(Degrees.of(-45))
+            );
 
         xbox.x()
-                .onTrue(new InstantCommand(() -> autoScoring.setLevel(3))
-                        .andThen(superstructure.prepareLevel(Superstructure.Level.L3)))
-                .onFalse(superstructure.scoreHeldPiece());
+            .onTrue(
+                superstructure.moveElevatorToHeight(ElevatorConstants.L1)
+            );
 
         xbox.y()
-                .onTrue(new InstantCommand(() -> autoScoring.setLevel(4))
-                        .andThen(superstructure.prepareLevel(Superstructure.Level.L4)))
-                .onFalse(superstructure.scoreHeldPiece());
+            .onTrue(
+                superstructure.moveElevatorToHeight(ElevatorConstants.L3)
+            );
 
-        xbox.leftTrigger().whileTrue(autoScoring.autoScore(superstructure));
+        xbox.rightBumper()
+            .whileTrue(
+                superstructure.armIntake()
+            ).onFalse(
+                superstructure.armStop()
+            );
 
-        xbox.rightStick().whileTrue(new InstantCommand(autoScoring::updateClosestReefPos));
+        xbox.leftBumper()
+            .whileTrue(
+                superstructure.armOuttake()
+            ).onFalse(
+                superstructure.armStop()
+            );
 
-        xbox.povRight().whileTrue(superstructure.scoreAndFunnel());
+
+//        xbox.b()
+//            .onTrue(
+//                superstructure.moveArmToAngle(ArmConstants.STOW_ANGLE)
+//            );
+
+
+//        xbox.a()
+//                .onTrue(new InstantCommand(() -> autoScoring.setLevel(1))
+//                        .andThen(superstructure.prepareLevel(Superstructure.Level.L1)))
+//                .onFalse(superstructure.scoreHeldPiece());
+//
+//        xbox.b()
+//                .onTrue(new InstantCommand(() -> autoScoring.setLevel(2))
+//                        .andThen(superstructure.prepareLevel(Superstructure.Level.L2)))
+//                .onFalse(superstructure.scoreHeldPiece());
+//
+//        xbox.x()
+//                .onTrue(new InstantCommand(() -> autoScoring.setLevel(3))
+//                        .andThen(superstructure.prepareLevel(Superstructure.Level.L3)))
+//                .onFalse(superstructure.scoreHeldPiece());
+//
+//        xbox.y()
+//                .onTrue(new InstantCommand(() -> autoScoring.setLevel(4))
+//                        .andThen(superstructure.prepareLevel(Superstructure.Level.L4)))
+//                .onFalse(superstructure.scoreHeldPiece());
+//
+//        xbox.leftTrigger().whileTrue(autoScoring.autoScore(superstructure));
+//
+//        xbox.rightStick().whileTrue(new InstantCommand(autoScoring::updateClosestReefPos));
+
+//        xbox.povRight().whileTrue(superstructure.scoreAndFunnel());
 
         // ---------------- DEBUG BINDINGS --------------------
         // Simple helpers to manually command the arm/elevator without the full state machine.
