@@ -59,7 +59,7 @@ public class Elevator extends SubsystemBase {
 
     // Homing logic
     private boolean needsHoming = true;
-    private HomingState homingState = HomingState.IDLE;
+    private HomingState homingState = HomingState.HOMING;
 
     // Our "goal" position in meters
     private Distance targetPosition = L0;
