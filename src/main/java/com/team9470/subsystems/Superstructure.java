@@ -5,6 +5,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj2.command.*;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -50,6 +51,7 @@ public class Superstructure extends SubsystemBase {
     private GamePieceState pieceState = GamePieceState.EMPTY;
     private Mode activeMode = Mode.NONE;
     private Level currentLevel = Level.L1;
+    private Command autoPickupCommand;
 
     public Superstructure(Mechanism2d mech) {
         this.elevator = new Elevator(mech);
@@ -60,11 +62,22 @@ public class Superstructure extends SubsystemBase {
 
     @Override
     public void periodic() {
-        boolean cradle = indexer.isCoralInCradle();
+        if (autoPickupCommand != null && !autoPickupCommand.isScheduled()) {
+            autoPickupCommand = null;
+        }
 
-        if (cradle && pieceState == GamePieceState.EMPTY) {
+        boolean cradle = indexer.isCoralInCradle();
+        boolean newlyDetected = cradle && pieceState == GamePieceState.EMPTY;
+        boolean cradleCleared = !cradle && pieceState == GamePieceState.CORAL_IN_CRADLE;
+
+        if (newlyDetected) {
             pieceState = GamePieceState.CORAL_IN_CRADLE;
-        } else if (!cradle && pieceState == GamePieceState.CORAL_IN_CRADLE) {
+
+            if (!arm.isHoldingItem() && autoPickupCommand == null) {
+                autoPickupCommand = coralCradlePickup();
+                CommandScheduler.getInstance().schedule(autoPickupCommand);
+            }
+        } else if (cradleCleared) {
             pieceState = GamePieceState.EMPTY;
         }
 
