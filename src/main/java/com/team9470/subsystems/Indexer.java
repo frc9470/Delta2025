@@ -43,6 +43,7 @@ public class Indexer extends SubsystemBase {
     /** State tracking */
     private boolean isRunning = false;
     private boolean coralPresent = false;
+    private boolean beamBroken = false;
 
     public Indexer() {
         // Apply motor configurations
@@ -72,17 +73,17 @@ public class Indexer extends SubsystemBase {
      */
     private void updateCoralDetection() {
         // Primary detection: Beam break sensor (inverted logic - true when beam is broken)
-        boolean beamBreak = !coralSensor.get();
-        
+        beamBroken = !coralSensor.get();
+
         // Fallback detection: Current monitoring
         Current motor1Current = motor1CurrentSignal.asSupplier().get();
         Current motor2Current = motor2CurrentSignal.asSupplier().get();
         boolean highCurrent1 = motor1Current.gte(IndexerConstants.CORAL_DETECTION_CURRENT);
         boolean highCurrent2 = motor2Current.gte(IndexerConstants.CORAL_DETECTION_CURRENT);
         boolean highCurrentFallback = highCurrent1 || highCurrent2;
-        
+
         // Coral is present if beam break is triggered (primary) OR current fallback is active
-        coralPresent = beamBreak || highCurrentFallback;
+        coralPresent = beamBroken || highCurrentFallback;
     }
 
     /**
@@ -129,6 +130,13 @@ public class Indexer extends SubsystemBase {
      */
     public boolean hasCoral() {
         return coralDetected.update(Timer.getFPGATimestamp(), coralPresent);
+    }
+
+    /**
+     * Raw beam break state for the cradle. True when a coral is blocking the sensor.
+     */
+    public boolean isCoralInCradle() {
+        return beamBroken;
     }
 
     /**
