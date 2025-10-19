@@ -5,6 +5,7 @@ import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.team9470.commands.AutoScoring;
 import com.team9470.commands.Autos;
+import com.team9470.commands.WheelRadiusCharacterization;
 import com.team9470.subsystems.MusicPlayer;
 import com.team9470.subsystems.Superstructure;
 import com.team9470.subsystems.Swerve;
@@ -67,6 +68,14 @@ public class RobotContainer {
         autoChooser.select("2C Test");
         SmartDashboard.putData("AutoChooser", autoChooser);
         SmartDashboard.putData("Mechanism", mech);
+        SmartDashboard.putData(
+                "Drive/Commands/Characterize Wheel Radius (CW)",
+                new WheelRadiusCharacterization(
+                        drivetrain, WheelRadiusCharacterization.Direction.CLOCKWISE));
+        SmartDashboard.putData(
+                "Drive/Commands/Characterize Wheel Radius (CCW)",
+                new WheelRadiusCharacterization(
+                        drivetrain, WheelRadiusCharacterization.Direction.COUNTER_CLOCKWISE));
 
         RobotModeTriggers.autonomous().whileTrue(autoChooser.selectedCommandScheduler());
     }
