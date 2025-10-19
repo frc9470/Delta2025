@@ -72,10 +72,10 @@ public class Superstructure extends SubsystemBase {
             autoPickupCommand = null;
         }
 
-        boolean cradle = indexer.isCoralInCradle();
-        boolean newlyDetected = cradle && pieceState == GamePieceState.EMPTY;
-        boolean cradleCleared = !cradle && pieceState == GamePieceState.CORAL_IN_CRADLE;
-        if (cradle)
+        boolean coralInCradle = indexer.hasCoral();
+        boolean newlyDetected = coralInCradle && pieceState == GamePieceState.EMPTY;
+        boolean cradleCleared = !coralInCradle && pieceState == GamePieceState.CORAL_IN_CRADLE;
+        if (coralInCradle)
             pieceState = GamePieceState.CORAL_IN_CRADLE;
         if(newlyDetected) {
             if (!arm.isHoldingItem() && autoPickupCommand == null) {
@@ -134,11 +134,11 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command waitForIntake() {
-        return new WaitUntilCommand(indexer::isCoralInCradle);
+        return new WaitUntilCommand(indexer::hasCoral);
     }
 
     public boolean hasGamePiece() {
-        return arm.isHoldingItem() || indexer.isCoralInCradle();
+        return arm.isHoldingItem() || indexer.hasCoral();
     }
 
     public Elevator getElevator() {
@@ -157,8 +157,8 @@ public class Superstructure extends SubsystemBase {
         return intake;
     }
 
-    public boolean isCoralInCradle() {
-        return indexer.isCoralInCradle();
+    public Command scoreAndFunnel() {
+        return indexer.outputCommand();
     }
 
     public boolean hasCoralInArm() {
@@ -210,7 +210,7 @@ public class Superstructure extends SubsystemBase {
                     arm.clearGamePieceFlags();
                 }),
                 new ParallelDeadlineGroup(
-                        Commands.waitUntil(arm::hasItem).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
+                        Commands.waitUntil(arm::isHoldingItem).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
                         new ParallelCommandGroup(
                                 elevator.L0(),
                                 arm.moveCommand(ArmConstants.ALGAE_GROUND_INTAKE_ANGLE),
@@ -218,7 +218,7 @@ public class Superstructure extends SubsystemBase {
                         )
                 ),
                 Commands.runOnce(() -> {
-                    if (arm.hasItem()) {
+                    if (arm.isHoldingItem()) {
                         arm.holdItem();
                         arm.setHoldingAlgae(true);
                         pieceState = GamePieceState.ALGAE_IN_ARM;
@@ -227,7 +227,7 @@ public class Superstructure extends SubsystemBase {
                     } else {
                         arm.stopRollers();
                         arm.clearGamePieceFlags();
-                        pieceState = indexer.isCoralInCradle()
+                        pieceState = indexer.hasCoral()
                                 ? GamePieceState.CORAL_IN_CRADLE
                                 : GamePieceState.EMPTY;
                         activeMode = Mode.NONE;
@@ -250,7 +250,7 @@ public class Superstructure extends SubsystemBase {
                     arm.clearGamePieceFlags();
                 }),
                 new ParallelDeadlineGroup(
-                        Commands.waitUntil(arm::hasItem).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
+                        Commands.waitUntil(arm::isHoldingItem).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
                         new ParallelCommandGroup(
                                 elevator.getLevelCommand(level.elevatorLevel()),
                                 arm.moveCommand(ArmConstants.ALGAE_REEF_INTAKE_ANGLE),
@@ -258,7 +258,7 @@ public class Superstructure extends SubsystemBase {
                         )
                 ),
                 Commands.runOnce(() -> {
-                    if (arm.hasItem()) {
+                    if (arm.isHoldingItem()) {
                         arm.holdItem();
                         arm.setHoldingAlgae(true);
                         pieceState = GamePieceState.ALGAE_IN_ARM;
@@ -267,7 +267,7 @@ public class Superstructure extends SubsystemBase {
                     } else {
                         arm.stopRollers();
                         arm.clearGamePieceFlags();
-                        pieceState = indexer.isCoralInCradle()
+                        pieceState = indexer.hasCoral()
                                 ? GamePieceState.CORAL_IN_CRADLE
                                 : GamePieceState.EMPTY;
                         activeMode = Mode.NONE;
@@ -358,7 +358,7 @@ public class Superstructure extends SubsystemBase {
                     arm.setHoldingCoral(false);
                     arm.stopRollers();
                     arm.clearGamePieceFlags();
-                    pieceState = indexer.isCoralInCradle()
+                    pieceState = indexer.hasCoral()
                             ? GamePieceState.CORAL_IN_CRADLE
                             : GamePieceState.EMPTY;
                     activeMode = Mode.NONE;
@@ -412,7 +412,7 @@ public class Superstructure extends SubsystemBase {
                     arm.setHoldingAlgae(false);
                     arm.stopRollers();
                     arm.clearGamePieceFlags();
-                    pieceState = indexer.isCoralInCradle()
+                    pieceState = indexer.hasCoral()
                             ? GamePieceState.CORAL_IN_CRADLE
                             : GamePieceState.EMPTY;
                     activeMode = Mode.NONE;
@@ -436,7 +436,7 @@ public class Superstructure extends SubsystemBase {
     public Command intakeCoralGround() {
         return Commands.sequence(
                 new ParallelDeadlineGroup(
-                        Commands.waitUntil(indexer::isCoralInCradle),
+                        Commands.waitUntil(indexer::hasCoral),
                         new ParallelCommandGroup(
                                 intake.goDownAndStartRollersCommand(),
                                 indexer.runCommand()

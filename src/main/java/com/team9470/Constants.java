@@ -26,9 +26,9 @@ public final class Constants {
     }
 
     public static class VisionConstants {
-        public static final Transform3d FRONT_LEFT_CAMERA_OFFSET = new Transform3d(Units.Inches.of(+12.290427), Units.Inches.of(12.710), Units.Inches.of(+8.803138),
+        public static final Transform3d FRONT_LEFT_CAMERA_OFFSET = new Transform3d(Units.Inches.of(+12.290427), Units.Inches.of(10.710), Units.Inches.of(+8.803138),
                 new Rotation3d(0, Math.toRadians(-28.125), Math.toRadians(-45)));
-        public static final Transform3d FRONT_RIGHT_CAMERA_OFFSET = new Transform3d(Units.Inches.of(+12.290427), Units.Inches.of(-12.710), Units.Inches.of(+8.803138),
+        public static final Transform3d FRONT_RIGHT_CAMERA_OFFSET = new Transform3d(Units.Inches.of(+12.290427), Units.Inches.of(-10.710), Units.Inches.of(+8.803138),
                 new Rotation3d(0, Math.toRadians(-28.125), Math.toRadians(45)));
     }
 
@@ -100,7 +100,7 @@ public final class Constants {
         // Current thresholds for coral detection
         public static final Current CORAL_DETECTION_CURRENT = Amps.of(8.0);
         
-        // Timeout for coral detection debouncing
+        // Timeout for coral detection debouncing (rising-edge filter)
         public static final double CORAL_DETECTION_TIMEOUT = 0.1; // seconds
         
         public static TalonFXConfiguration getMotorConfig() {
