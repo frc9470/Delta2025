@@ -20,8 +20,8 @@ public class Ports {
     public static final CanDeviceId INTAKE_ROLLERS = new CanDeviceId(13, "rio");
 
     /**
-     * Sensor IDs
+     * TODO: Set
      */
-    public static final int INDEXER_SENSOR = 1;
-    public static final int CORAL_BREAK = 0;
+    public static final int CRADLE_BREAK = 0;
+    public static final int INTAKE_BREAK = 1;
 }

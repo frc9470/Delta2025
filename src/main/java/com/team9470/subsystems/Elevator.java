@@ -420,6 +420,8 @@ public class Elevator extends SubsystemBase {
         return getMoveToPositionCommand(ElevatorConstants.L0);
     }
 
+    public Command stow() { return getMoveToPositionCommand(STOW_POSITION); }
+
     public Command L1(){
         return getMoveToPositionCommand(ElevatorConstants.L1);
     }
@@ -449,6 +451,4 @@ public class Elevator extends SubsystemBase {
             default -> L0();
         };
     }
-
-
 }

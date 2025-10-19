@@ -1,5 +1,6 @@
 package com.team9470.subsystems;
 
+import static com.team9470.Constants.IndexerConstants.CORAL_DETECTION_CURRENT;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.StatusSignal;
@@ -13,6 +14,7 @@ import com.team9470.Ports;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -27,7 +29,7 @@ public class Indexer extends SubsystemBase {
     private final TalonFX indexerMotor2 = TalonFXFactory.createDefaultTalon(Ports.INDEXER_2);
     
 
-    private final DigitalInput coralSensor = new DigitalInput(Ports.INDEXER_SENSOR); //beam break
+    private final DigitalInput coralSensor = new DigitalInput(Ports.CRADLE_BREAK); //beam break
     
     /** STATUS SIGNALS for current monitoring */
     private final StatusSignal<Current> motor1CurrentSignal = indexerMotor1.getStatorCurrent();
@@ -65,6 +67,13 @@ public class Indexer extends SubsystemBase {
         
         // Update delayed boolean for debouncing
         coralDetected.update(Timer.getFPGATimestamp(), coralPresent);
+
+        // Push values to SmartDashboard
+        logTelemetry();
+    }
+
+    private void logTelemetry() {
+        SmartDashboard.putBoolean("Indexer/hasCoral", hasCoral());
     }
 
     /**
@@ -78,8 +87,8 @@ public class Indexer extends SubsystemBase {
         // Fallback detection: Current monitoring
         Current motor1Current = motor1CurrentSignal.asSupplier().get();
         Current motor2Current = motor2CurrentSignal.asSupplier().get();
-        boolean highCurrent1 = motor1Current.gte(IndexerConstants.CORAL_DETECTION_CURRENT);
-        boolean highCurrent2 = motor2Current.gte(IndexerConstants.CORAL_DETECTION_CURRENT);
+        boolean highCurrent1 = motor1Current.gte(CORAL_DETECTION_CURRENT);
+        boolean highCurrent2 = motor2Current.gte(CORAL_DETECTION_CURRENT);
         boolean highCurrentFallback = highCurrent1 || highCurrent2;
 
         // Coral is present if beam break is triggered (primary) OR current fallback is active
@@ -94,6 +103,13 @@ public class Indexer extends SubsystemBase {
         indexerMotor2.setVoltage(-IndexerConstants.INDEXER_SPEED.in(Volts));
         isRunning = true;
     }
+
+    public void unjamIndexer() {
+        indexerMotor1.setVoltage(-IndexerConstants.INDEXER_SPEED.in(Volts));
+        indexerMotor2.setVoltage(IndexerConstants.INDEXER_SPEED.in(Volts));
+        isRunning = true;
+    }
+
 
     /**
      * Stops the indexer by stopping both motors
@@ -138,13 +154,8 @@ public class Indexer extends SubsystemBase {
     public boolean isCoralInCradle() {
         return beamBroken;
     }
+    /*
 
-    /**
-     * Returns a command that handles the complete intake-to-output cycle:
-     * 1. Wits for coral to be detected (intake)
-     * 2. Continues running until coral leaves the indexer (output to robot)
-     * This is the main command
-     */
     public Command intakeToOutputCommand() {
         return this.run(this::startIndexer)
                 .until(this::hasCoral)
@@ -153,15 +164,12 @@ public class Indexer extends SubsystemBase {
                 .andThen(this::stopIndexer);
     }
 
-    /**
-     * Only intakes, and then holds coral
-     * @return command
-     */
     public Command intakeAndHoldCommand(){
         return this.run(this::startIndexer)
         .until(this::hasCoral)
         .andThen(this.run(this::holdIndexer));
     }
+    */
 
     /**
      * Outputs coral into robot, assuming coral is being held right now
@@ -177,7 +185,15 @@ public class Indexer extends SubsystemBase {
      * Returns a command that runs the indexer continuously
      */
     public Command runCommand() {
-        return this.run(this::startIndexer);
+        return this.run(() -> {
+
+                if(indexerMotor1.getStatorCurrent().getValue().lte(CORAL_DETECTION_CURRENT) || indexerMotor2.getStatorCurrent().getValue().lte(CORAL_DETECTION_CURRENT))
+                    this.unjamIndexer();
+                else
+                    this.startIndexer();
+            }
+        );
+
     }
 
     /**
@@ -187,16 +203,6 @@ public class Indexer extends SubsystemBase {
         return this.run(this::reverseIndexer);
     }
 
-    /**
-     * Returns a command that holds the indexer (small voltage to prevent coral from falling)
-     */
-    public Command holdCommand() {
-        return this.run(this::holdIndexer);
-    }
-
-    /**
-     * Returns a command that holds the indexer (small voltage to prevent coral from falling)
-     */
     public Command stopCommand() {
         return this.run(this::stopIndexer);
     }

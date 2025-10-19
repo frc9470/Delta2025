@@ -27,7 +27,7 @@ public class Intake extends SubsystemBase {
     // --- Hardware ---
     private final TalonFX armMotor;
     private final TalonFX rollerMotor;
-    private final DigitalInput coralSensor = new DigitalInput(Ports.CORAL_BREAK);
+    private final DigitalInput coralSensor = new DigitalInput(Ports.INTAKE_BREAK);
 
     // --- Control objects ---
     private final MotionMagicVoltage motionMagic = new MotionMagicVoltage(0);
@@ -120,10 +120,6 @@ public class Intake extends SubsystemBase {
         }
         periodicIO.homingState = homingState;
 
-        // Auto-retract when coral is detected
-        if (isDown && periodicIO.coralDetected) {
-            retractAndStopRollers();
-        }
 
         writePeriodicOutputs();
 
@@ -133,6 +129,9 @@ public class Intake extends SubsystemBase {
 
     private void logTelemetry() {
         SmartDashboard.putNumber("Intake/Position", periodicIO.position.in(Degrees));
+        SmartDashboard.putString("Intake/HomingState", periodicIO.homingState.name());
+        SmartDashboard.putNumber("Intake/Goal_Deg", periodicIO.goal.in(Degrees));
+        SmartDashboard.putNumber("Intake/Setpoint_Deg", periodicIO.setpointAngle.in(Degrees));
     }
 
 

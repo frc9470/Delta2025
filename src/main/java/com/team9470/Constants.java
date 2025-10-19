@@ -51,13 +51,15 @@ public final class Constants {
 
         // Current limits
 
-        public static final Distance HOME_POSITION = Meters.of(0);
+        public static final Distance HOME_POSITION = Meters.of(0.033);
         public static final Distance L0 = Meters.of(0.0); // INTAKE
         public static final Distance L1 = Meters.of(0.2);
         public static final Distance L2 = Meters.of(.43);
         public static final Distance L3 = Meters.of(.84);
         public static final Distance L4 = Meters.of(1.1);
         public static final Distance INTAKE = Meters.of(0);
+
+        public static final Distance STOW_POSITION = L1;
 
 
         public static TalonFXConfiguration ElevatorFXConfig(){
@@ -91,8 +93,8 @@ public final class Constants {
 
     public static final class IndexerConstants {
         // Motor control voltages
-        public static final Voltage INDEXER_SPEED = Volts.of(3.0);
-        public static final Voltage INDEXER_REVERSE_SPEED = Volts.of(-2.0);
+        public static final Voltage INDEXER_SPEED = Volts.of(-5.0);
+        public static final Voltage INDEXER_REVERSE_SPEED = Volts.of(2.0);
         public static final Voltage INDEXER_HOLD_SPEED = Volts.of(0.1);
         
         // Current thresholds for coral detection
@@ -119,20 +121,20 @@ public final class Constants {
         // Arm positions
         public static final Angle RETRACTED_ANGLE = Degrees.of(90); // Retracted position, originally 118 but hits echain
         public static final Angle DOWN_ANGLE = Degrees.of(-32); // Down position for ground intake
-        public static final Angle HOMING_ANGLE = RETRACTED_ANGLE; // Use down position for homing
+        public static final Angle HOMING_ANGLE = Degrees.of(118); // Use down position for homing
 
         // Motion control
-        public static final double CRUISE_VELOCITY = 15; // degrees per second
-        public static final double ACCELERATION = 30; // degrees per second squared
+        public static final double CRUISE_VELOCITY = 2; // degrees per second
+        public static final double ACCELERATION = 15; // degrees per second squared
         public static final double JERK = 0;
         
         // Homing
-        public static final Current HOMING_THRESHOLD = Amps.of(8); // Current threshold for homing
-        public static final Voltage HOMING_OUTPUT = Volts.of(1.0); // Homing voltage
+        public static final Current HOMING_THRESHOLD = Amps.of(40); // Current threshold for homing
+        public static final Voltage HOMING_OUTPUT = Volts.of(2.0); // Homing voltage
         public static final Time HOMING_TIMEOUT = Seconds.of(10); // Homing timeout
         
         // Roller control
-        public static final Voltage ROLLER_SPEED = Volts.of(4.0); // Roller intake speed
+        public static final Voltage ROLLER_SPEED = Volts.of(6.0); // Roller intake speed
         public static final Voltage ROLLER_REVERSE_SPEED = Volts.of(-2.0); // Roller reverse speed
         
         // Physical properties
@@ -149,10 +151,10 @@ public final class Constants {
             config.MotionMagic.MotionMagicAcceleration = ACCELERATION;
             config.MotionMagic.MotionMagicJerk = JERK;
             config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
-            config.Slot0.kP = 25;
+            config.Slot0.kP = 15;
             config.Slot0.kI = 0.0;
             config.Slot0.kD = 0.0;
-            config.Slot0.kG = 0.1;
+            config.Slot0.kG = 0.31;
             config.Slot0.kS = 0.0;
             config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
             config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
@@ -176,7 +178,7 @@ public final class Constants {
         // Intake angles
         public static final Angle STOW_ANGLE = Degrees.of(-50);
 
-        public static final Angle CORAL_HANDOFF_PREP_ANGLE = Degrees.of(-20);
+        public static final Angle CORAL_HANDOFF_PREP_ANGLE = Degrees.of(-88);
         public static final Angle CORAL_HANDOFF_PICKUP_ANGLE = Degrees.of(-90);
 
         public static final Angle CORAL_INTAKE_ANGLE = Degrees.of(-20);
@@ -207,8 +209,8 @@ public final class Constants {
         public static final Time HOMING_TIMEOUT = Seconds.of(10);
 
         // Roller control
-        public static final Voltage ROLLER_INTAKE_SPEED = Volts.of(3.0);
-        public static final Voltage ROLLER_OUTPUT_SPEED = Volts.of(-3.0); // -2, lots of friction
+        public static final Voltage ROLLER_INTAKE_SPEED = Volts.of(4.0);
+        public static final Voltage ROLLER_OUTPUT_SPEED = Volts.of(-5.0);
         public static final Voltage ROLLER_HOLD_SPEED = Volts.of(0.5); // Stalls to hold items
         
         // Item detection

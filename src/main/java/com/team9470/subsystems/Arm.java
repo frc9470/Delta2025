@@ -118,7 +118,7 @@ public class Arm extends SubsystemBase {
         periodicIO.homingState = homingState;
 
         // Item detection and hold logic
-        updateItemDetection();
+//        updateItemDetection();
 
         writePeriodicOutputs();
 
@@ -197,23 +197,23 @@ public class Arm extends SubsystemBase {
         }
     }
 
-    /** Update item detection and hold logic */
-    private void updateItemDetection() {
-        // Check if rollers are drawing high current (indicating item resistance)
-        boolean rollerHighCurrent = periodicIO.rollerCurrent.gte(ArmConstants.ITEM_DETECTION_CURRENT);
-        
-        if (rollerHighCurrent) {
-            hasItem = true;
-        } else if (!holdingItem) {
-            hasItem = false;
-        }
-        
-        // If we have an item and rollers are running, switch to hold mode
-        if (hasItem && rollersRunning && !holdingItem) {
-            holdingItem = true;
-            holdItem();
-        }
-    }
+//    /** Update item detection and hold logic */
+//    private void updateItemDetection() {
+//        // Check if rollers are drawing high current (indicating item resistance)
+//        boolean rollerHighCurrent = periodicIO.rollerCurrent.gte(ArmConstants.ITEM_DETECTION_CURRENT);
+//
+//        if (rollerHighCurrent) {
+//            hasItem = true;
+//        } else if (!holdingItem) {
+//            hasItem = false;
+//        }
+//
+//        // If we have an item and rollers are running, switch to hold mode
+//        if (hasItem && rollersRunning && !holdingItem) {
+//            holdingItem = true;
+//            holdItem();
+//        }
+//    }
 
     /** Write outputs to motors */
     private void writePeriodicOutputs() {

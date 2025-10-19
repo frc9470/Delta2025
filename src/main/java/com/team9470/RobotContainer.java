@@ -87,30 +87,21 @@ public class RobotContainer {
                 )
         );
 
-//        // Reset field-centric heading
-//        xbox.x().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
-//
-//        // Example of binding elevator level commands via the superstructure's elevator
-//        for (int i = 0; i < 4; i++) {
-//            final int id = i;
-//            Trigger trig = new Trigger(() -> (id < 2) ? buttonBoard.getX() == Math.pow(-1.0, id + 1)
-//                    : buttonBoard.getY() == Math.pow(-1.0, id));
-//            trig.whileTrue(new InstantCommand(() -> autoScoring.setLevel(id + 1)));
-//        }
-//
-//        // Reef position bindings (remaining unchanged)
-//        for (int i = 0; i < 12; i++) {
-//            JoystickButton button = new JoystickButton(buttonBoard, i+1);
-//            final int id = i;
-//            button.whileTrue(new InstantCommand(() -> autoScoring.setBranch(id)));
-//        }
-
 //        xbox.rightTrigger()
 //                .whileTrue(autoScoring.autoScore(superstructure)).onFalse(superstructure.getElevator().L0());
         // TODO: Remove / verify.
-//        xbox.rightTrigger().onTrue(superstructure.coralCradlePickup());
+        xbox.rightTrigger()
+            .onTrue(
+                superstructure.moveElevatorToHeight(ElevatorConstants.STOW_POSITION)
+                    .andThen(superstructure.intakeCoralGround())
+            ).onFalse(
+                superstructure.stopIntakeGround()
+            );
+
+        xbox.a().whileTrue(superstructure.coralCradlePickup());
 //        xbox.rightBumper().onTrue(superstructure.algaeGroundPickup());
 
+        /*
         xbox.a()
             .onTrue(
                 superstructure.moveArmToAngle(Degrees.of(90))
@@ -131,19 +122,32 @@ public class RobotContainer {
                 superstructure.moveElevatorToHeight(ElevatorConstants.L3)
             );
 
-        xbox.rightBumper()
+        xbox.leftTrigger()
+            .onTrue(
+                superstructure.moveElevatorToHeight(ElevatorConstants.L0)
+            );
+
+        xbox.leftBumper()
             .whileTrue(
                 superstructure.armIntake()
             ).onFalse(
                 superstructure.armStop()
             );
 
-        xbox.leftBumper()
+        xbox.rightBumper()
             .whileTrue(
                 superstructure.armOuttake()
             ).onFalse(
                 superstructure.armStop()
             );
+
+
+        */
+
+//        xbox.rightTrigger()
+//            .whileTrue(
+//                superstructure.intakeCoralGround()
+//            )
 
 
 //        xbox.b()
@@ -178,13 +182,5 @@ public class RobotContainer {
 
 //        xbox.povRight().whileTrue(superstructure.scoreAndFunnel());
 
-        // ---------------- DEBUG BINDINGS --------------------
-        // Simple helpers to manually command the arm/elevator without the full state machine.
-        // Comment/uncomment the examples below to test different poses as needed.
-        xbox.back().onTrue(superstructure.debugArmToAngle(Degrees.of(0)));
-//        xbox.back().onTrue(superstructure.debugArmToAngle(Degrees.of(-45)));
-
-        xbox.start().onTrue(superstructure.debugElevatorToHeight(Meters.of(0.6)));
-//        xbox.start().onTrue(superstructure.debugElevatorToHeight(Meters.of(1.1)));
     }
 }
