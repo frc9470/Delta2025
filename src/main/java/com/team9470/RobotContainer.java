@@ -133,12 +133,11 @@ public class RobotContainer {
                 .toggleOnTrue(superstructure.prepareLevel(Superstructure.Level.L4)
                         .finallyDo(superstructure::stow));
 
-//        xbox.leftBumper()
-//            .onTrue(autoScoring.autoScore(superstructure, AutoScoring.Side.LEFT));
-//
-//        xbox.rightBumper()
-//            .onTrue(autoScoring.autoScore(superstructure, AutoScoring.Side.RIGHT));
+        xbox.leftBumper()
+                .onTrue(autoScoring.autoAlign(superstructure, AutoScoring.Side.LEFT));
 
+        xbox.leftTrigger()
+                .onTrue(autoScoring.autoAlign(superstructure, AutoScoring.Side.RIGHT));
 
         xbox.rightBumper()
                 .whileTrue(
