@@ -135,17 +135,19 @@ public class RobotContainer {
                 .toggleOnTrue(superstructure.prepareLevel(Superstructure.Level.L4)
                         .finallyDo(superstructure::stow));
 
-//        xbox.leftBumper()
-//            .onTrue(autoScoring.autoScore(superstructure, AutoScoring.Side.LEFT));
-//
+        //left
+        xbox.leftBumper()
+            .onTrue(autoScoring.autoScore(superstructure, AutoScoring.Side.LEFT));
+
+        //right
+        xbox.leftTrigger()
+            .onTrue(autoScoring.autoScore(superstructure, AutoScoring.Side.RIGHT));
+
+
 //        xbox.rightBumper()
-//            .onTrue(autoScoring.autoScore(superstructure, AutoScoring.Side.RIGHT));
-
-
-        xbox.rightBumper()
-                .whileTrue(
-                        superstructure.scoreHeldPiece()
-                );
+//                .whileTrue(
+//                        superstructure.scoreHeldPiece()
+//                );
 
 
     }
