@@ -45,9 +45,7 @@ public class AutoScoring {
                                 .andThen(superstructure.waitForIntake().asProxy())
                                 .andThen(superstructure.raise(objective.level))
                 );
-        if(objective.level == 1){
-            return driveToScore.andThen(superstructure.scoreSlow().asProxy());
-        } else return driveToScore.andThen(superstructure.score().asProxy());
+        return driveToScore.andThen(superstructure.score().asProxy());
     }
 
     public static Command autoScoreWithTimeout(Superstructure superstructure, CoralObjective objective, Swerve drivetrain) {
@@ -72,9 +70,7 @@ public class AutoScoring {
 
     public Command autoScoreNoDrive(Superstructure superstructure) {
         return new DeferredCommand(() -> {
-            if(coralObjective.level == 1){
-                return superstructure.raise(coralObjective.level).andThen(superstructure.scoreSlow());
-            } else return superstructure.raise(coralObjective.level).andThen(superstructure.score());
+            return superstructure.raise(coralObjective.level).andThen(superstructure.score());
         }, Set.of());
     }
 
