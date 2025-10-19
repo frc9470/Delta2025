@@ -210,13 +210,13 @@ public class Superstructure extends SubsystemBase {
                 Commands.runOnce(() -> {
                     activeMode = Mode.NONE;
                     arm.clearGamePieceFlags();
+                    arm.startIntake();
                 }),
                 new ParallelDeadlineGroup(
-                        Commands.waitUntil(arm::isHoldingItem).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
+                        Commands.waitUntil(arm::isHoldingItem),
                         new ParallelCommandGroup(
                                 elevator.L0(),
-                                arm.moveCommand(ArmConstants.ALGAE_GROUND_INTAKE_ANGLE),
-                                Commands.startEnd(arm::startIntake, arm::stopRollers)
+                                arm.moveCommand(ArmConstants.ALGAE_GROUND_INTAKE_ANGLE)
                         )
                 ),
                 Commands.runOnce(() -> {
@@ -235,11 +235,20 @@ public class Superstructure extends SubsystemBase {
                         activeMode = Mode.NONE;
                     }
                 }),
-                new ParallelCommandGroup(
-                        elevator.L0(),
-                        arm.moveCommand(ArmConstants.ALGAE_HOLD_ANGLE)
+                Commands.either(
+                        new ParallelCommandGroup(
+                                elevator.L0(),
+                                arm.moveCommand(ArmConstants.ALGAE_HOLD_ANGLE)
+                        ),
+                        Commands.none(),
+                        () -> pieceState == GamePieceState.ALGAE_IN_ARM
                 )
-        ).withName("AlgaeGroundPickup");
+        ).withName("AlgaeGroundPickup")
+                .finallyDo(interrupted -> {
+                    if (!arm.isHoldingAlgae()) {
+                        arm.stopRollers();
+                    }
+                });
     }
 
     public Command algaeReefPickup(Level level) {
@@ -250,13 +259,13 @@ public class Superstructure extends SubsystemBase {
                 Commands.runOnce(() -> {
                     activeMode = Mode.NONE;
                     arm.clearGamePieceFlags();
+                    arm.startIntake();
                 }),
                 new ParallelDeadlineGroup(
-                        Commands.waitUntil(arm::isHoldingItem).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
+                        Commands.waitUntil(arm::isHoldingItem),
                         new ParallelCommandGroup(
                                 elevator.getLevelCommand(level.elevatorLevel()),
-                                arm.moveCommand(ArmConstants.ALGAE_REEF_INTAKE_ANGLE),
-                                Commands.startEnd(arm::startIntake, arm::stopRollers)
+                                arm.moveCommand(ArmConstants.ALGAE_REEF_INTAKE_ANGLE)
                         )
                 ),
                 Commands.runOnce(() -> {
@@ -275,11 +284,20 @@ public class Superstructure extends SubsystemBase {
                         activeMode = Mode.NONE;
                     }
                 }),
-                new ParallelCommandGroup(
-                        elevator.stow(),
-                        arm.moveCommand(ArmConstants.ALGAE_HOLD_ANGLE)
+                Commands.either(
+                        new ParallelCommandGroup(
+                                elevator.stow(),
+                                arm.moveCommand(ArmConstants.ALGAE_HOLD_ANGLE)
+                        ),
+                        Commands.none(),
+                        () -> pieceState == GamePieceState.ALGAE_IN_ARM
                 )
-        ).withName("AlgaeReefPickup" + level.name());
+        ).withName("AlgaeReefPickup" + level.name())
+                .finallyDo(interrupted -> {
+                    if (!arm.isHoldingAlgae()) {
+                        arm.stopRollers();
+                    }
+                });
     }
 
     public Command prepareLevel(Level level) {
