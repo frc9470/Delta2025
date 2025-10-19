@@ -234,7 +234,7 @@ public class Superstructure extends SubsystemBase {
                     arm.clearGamePieceFlags();
                 }),
                 new ParallelDeadlineGroup(
-                        Commands.waitUntil(arm::hasItem).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
+                        Commands.waitUntil(arm::isHoldingItem).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
                         new ParallelCommandGroup(
                                 elevator.L0(),
                                 arm.moveCommand(ArmConstants.ALGAE_GROUND_INTAKE_ANGLE),
@@ -242,7 +242,7 @@ public class Superstructure extends SubsystemBase {
                         )
                 ),
                 Commands.runOnce(() -> {
-                    if (arm.hasItem()) {
+                    if (arm.isHoldingItem()) {
                         arm.holdItem();
                         arm.setHoldingAlgae(true);
                         pieceState = GamePieceState.ALGAE_IN_ARM;
@@ -274,7 +274,7 @@ public class Superstructure extends SubsystemBase {
                     arm.clearGamePieceFlags();
                 }),
                 new ParallelDeadlineGroup(
-                        Commands.waitUntil(arm::hasItem).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
+                        Commands.waitUntil(arm::isHoldingItem).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
                         new ParallelCommandGroup(
                                 elevator.getLevelCommand(level.elevatorLevel()),
                                 arm.moveCommand(ArmConstants.ALGAE_REEF_INTAKE_ANGLE),
@@ -282,7 +282,7 @@ public class Superstructure extends SubsystemBase {
                         )
                 ),
                 Commands.runOnce(() -> {
-                    if (arm.hasItem()) {
+                    if (arm.isHoldingItem()) {
                         arm.holdItem();
                         arm.setHoldingAlgae(true);
                         pieceState = GamePieceState.ALGAE_IN_ARM;
