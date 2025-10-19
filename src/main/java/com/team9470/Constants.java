@@ -100,7 +100,7 @@ public final class Constants {
         // Current thresholds for coral detection
         public static final Current CORAL_DETECTION_CURRENT = Amps.of(8.0);
         
-        // Timeout for coral detection debouncing
+        // Timeout for coral detection debouncing (rising-edge filter)
         public static final double CORAL_DETECTION_TIMEOUT = 0.1; // seconds
         
         public static TalonFXConfiguration getMotorConfig() {
