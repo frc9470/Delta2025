@@ -186,7 +186,6 @@ public class AutoScoring {
         public static final CoralObjective NONE = new CoralObjective(0, Level.L1);
 
         public Pose2d getScoringPose(){
-            if (level == Level.L1) return Constants.DriverAssistConstants.getL1Pose(this);
             return Constants.DriverAssistConstants.getReefPositions()[branchId];
         }
 

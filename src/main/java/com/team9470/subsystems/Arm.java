@@ -195,6 +195,7 @@ public class Arm extends SubsystemBase {
     private void writePeriodicOutputs() {
         if (homingState == HomingState.HOMING) {
             pivotMotor.setControl(homingVoltage);
+            startIntake();
         } else {
             pivotMotor.setControl(
                     motionMagic.withPosition(targetAngle)
@@ -327,34 +328,6 @@ public class Arm extends SubsystemBase {
         return this.runOnce(this::triggerHoming)
             .andThen(Commands.waitUntil(() -> homingState == HomingState.HOMED));
     }
-
-    // --- Intake Commands ---
-
-    public Command coralIntakeCommand() {
-        return moveCommand(ArmConstants.CORAL_INTAKE_ANGLE)
-                .andThen(this.run(this::startIntake));
-    }
-
-    public Command algaeGroundIntakeCommand() {
-        return moveCommand(ArmConstants.ALGAE_GROUND_INTAKE_ANGLE)
-                .andThen(this.run(this::startIntake));
-    }
-
-    public Command algaeReefIntakeCommand() {
-        return moveCommand(ArmConstants.ALGAE_REEF_INTAKE_ANGLE)
-                .andThen(this.run(this::startIntake));
-    }
-
-    // --- Coral Scoring Commands ---
-
-    public Command coralBeforeScoringCommand(Angle angle) {
-        return moveCommand(angle);
-    }
-
-    public Command coralScoringCommand(Angle angle) {
-        return moveCommand(angle);
-    }
-
 
     // --- Algae Scoring Commands ---
 

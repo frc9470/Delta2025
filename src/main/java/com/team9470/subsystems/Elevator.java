@@ -231,7 +231,7 @@ public class Elevator extends SubsystemBase {
 
     // Example: check if we might be stalling
     public boolean isStalling() {
-        return periodicIO.current.in(Amps) >= 10;
+        return periodicIO.current.in(Amps) >= 30;
     }
 
     // ------------------ Internal (Periodic) Methods ------------------
@@ -274,7 +274,7 @@ public class Elevator extends SubsystemBase {
                 boolean timeOut = periodicIO.timestamp
                         .minus(homingStartTime)
                         .gt(ElevatorConstants.HOMING_TIMEOUT);
-                if (HOME_POSITION.isNear(periodicIO.positionMeters, Meters.of(0.02)) && timeOut) {
+                if (targetPosition.isNear(periodicIO.positionMeters, Meters.of(0.02)) && timeOut) {
                     homingState = HomingState.HOMING;
                     homingStartTime = periodicIO.timestamp;
                 }
@@ -289,7 +289,7 @@ public class Elevator extends SubsystemBase {
 
                 if (velocityStalled && currentTooHigh) {
                     // We consider ourselves at the bottom => zero the sensor
-                    elevatorMotor.setPosition(HOME_POSITION.in(Meters));
+                    elevatorMotor.setPosition(HOME_POSITION.in(Meters) * rotationsPerMeter);
                     homingState = HomingState.HOMED;
                 }
                 break;

@@ -184,7 +184,7 @@ public class Superstructure extends SubsystemBase {
                         arm.moveCommand(ArmConstants.CORAL_HANDOFF_PREP_ANGLE)
                 ),
                 new ParallelDeadlineGroup(
-                        new WaitUntilCommand(arm::isHoldingItem).andThen(new WaitCommand(0.3)).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
+                        new WaitUntilCommand(arm::isHoldingItem).andThen(new WaitCommand(0.4)).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
                         new ParallelCommandGroup(
                                 elevator.getMoveToPositionCommand(ElevatorConstants.HOME_POSITION),
                                 Commands.startEnd(arm::startIntake, arm::stopRollers)
@@ -214,9 +214,9 @@ public class Superstructure extends SubsystemBase {
                     arm.clearGamePieceFlags();
                 }),
                 new ParallelDeadlineGroup(
-                        Commands.waitUntil(arm::isHoldingItem).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
+                        Commands.waitUntil(arm::isHoldingItem),
                         new ParallelCommandGroup(
-                                elevator.L0(),
+                                elevator.L1(),
                                 arm.moveCommand(ArmConstants.ALGAE_GROUND_INTAKE_ANGLE),
                                 Commands.startEnd(arm::startIntake, arm::stopRollers)
                         )
@@ -238,7 +238,7 @@ public class Superstructure extends SubsystemBase {
                     }
                 }),
                 new ParallelCommandGroup(
-                        elevator.L0(),
+                        elevator.L2(),
                         arm.moveCommand(ArmConstants.ALGAE_HOLD_ANGLE)
                 )
         ).withName("AlgaeGroundPickup");
@@ -304,7 +304,16 @@ public class Superstructure extends SubsystemBase {
             case CORAL -> coralScore(currentLevel);
             case ALGAE -> algaeScore(currentLevel);
             default -> Commands.none();
-        }, Set.of(this));
+        }, Set.of(this)).
+                finallyDo(() -> {
+                    arm.setHoldingCoral(false);
+                    arm.stopRollers();
+                    arm.clearGamePieceFlags();
+                    pieceState = indexer.hasCoral()
+                            ? GamePieceState.CORAL_IN_CRADLE
+                            : GamePieceState.EMPTY;
+                    activeMode = Mode.NONE;
+                });
     }
 
     public Command stow() {
@@ -486,6 +495,10 @@ public class Superstructure extends SubsystemBase {
                 debugElevatorToHeight(height),
                 debugArmToAngle(angle)
         ).withName("DebugPose");
+    }
+
+    public Command reverseCommand(){
+        return indexer.reverseCommand().alongWith(intake.reverseRollersCommand());
     }
 
     // TODO: Remove after testing.

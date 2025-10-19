@@ -46,7 +46,7 @@ public final class Constants {
         public static final double JERK = 0;
 
         // Homing
-        public static final Voltage HOMING_OUTPUT = Units.Volts.of(-1.0);
+        public static final Voltage HOMING_OUTPUT = Units.Volts.of(-2.0);
         public static final Time HOMING_TIMEOUT = Units.Seconds.of(10);
 
         // Current limits
@@ -107,7 +107,7 @@ public final class Constants {
             TalonFXConfiguration config = new TalonFXConfiguration();
             config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
             config.CurrentLimits.StatorCurrentLimitEnable = true;
-            config.CurrentLimits.StatorCurrentLimit = 30;
+            config.CurrentLimits.StatorCurrentLimit = 25;
             config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
             return config;
         }
@@ -181,7 +181,7 @@ public final class Constants {
         public static final Angle CORAL_HANDOFF_PICKUP_ANGLE = Degrees.of(-90);
 
         public static final Angle CORAL_INTAKE_ANGLE = Degrees.of(-20);
-        public static final Angle ALGAE_GROUND_INTAKE_ANGLE = Degrees.of(-20);
+        public static final Angle ALGAE_GROUND_INTAKE_ANGLE = Degrees.of(-30);
         public static final Angle ALGAE_REEF_INTAKE_ANGLE = Degrees.of(0);
 
         // Coral scoring angles
@@ -201,7 +201,7 @@ public final class Constants {
         public static final Angle CORAL_L1_SCORING = Degrees.of(-30);
 
         // Algae scoring angles / poses
-        public static final Angle ALGAE_HOLD_ANGLE = Degrees.of(0);
+        public static final Angle ALGAE_HOLD_ANGLE = Degrees.of(80);
         public static final Angle ALGAE_BARGE_BEFORE_SCORING = Degrees.of(110);
         public static final Angle ALGAE_BARGE_SCORING = Degrees.of(80);
         public static final Angle ALGAE_PROCESSOR_BEFORE_SCORING = Degrees.of(-45);
@@ -214,13 +214,13 @@ public final class Constants {
         public static final Time HOMING_TIMEOUT = Seconds.of(10);
 
         // Roller control
-        public static final Voltage ROLLER_INTAKE_SPEED = Volts.of(4.0);
-        public static final Voltage ROLLER_OUTPUT_SPEED = Volts.of(-5.0);
+        public static final Voltage ROLLER_INTAKE_SPEED = Volts.of(6.0);
+        public static final Voltage ROLLER_OUTPUT_SPEED = Volts.of(-6.0);
         public static final Voltage ROLLER_HOLD_SPEED = Volts.of(0.5); // Stalls to hold items
         
         // Item detection
         public static final Current ITEM_DETECTION_CURRENT = Amps.of(30.0);
-        public static final Time INTAKE_TIMEOUT = Seconds.of(0.5);
+        public static final Time INTAKE_TIMEOUT = Seconds.of(1);
 
         // Physical properties
         public static final double GEAR_RATIO = (44.0 / 16.0) * (44.0 / 18.0) * (60.0 / 12.0);
@@ -252,7 +252,7 @@ public final class Constants {
             TalonFXConfiguration config = new TalonFXConfiguration();
             config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
             config.CurrentLimits.StatorCurrentLimitEnable = true;
-            config.CurrentLimits.StatorCurrentLimit = 40;
+            config.CurrentLimits.StatorCurrentLimit = 45;
             config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
             return config;
         }
@@ -277,13 +277,14 @@ public final class Constants {
         //     new Pose2d(13.823177337646484, 5.40679407119751, new Rotation2d(-2.095592098445004)),
         // };
 
-        public static final double centerX = 4.47675;
-        public static final double centerY = 4.0259;
-        public static final double radius = 1.51;
-        public static final double pathRadius = 1.51;
-        public static final double pipeDistance = 0.1651;
-        public static final double fieldLength = 17.548225;
-        public static final Distance OUTWARD_OFFSET = Inches.of(5); // distance away from reef
+        public static final Distance centerX = Meters.of(4.47675);
+        public static final Distance centerY = Meters.of(4.0259);
+        public static final Distance radius = Meters.of(1.51);
+        public static final Distance pathRadius = Meters.of(1.51);
+        public static final Distance pipeDistance = Meters.of(0.1651);
+        public static final Distance fieldLength = Meters.of(17.548225);
+        public static final Distance OUTWARD_OFFSET = Inches.of(-5); // distance away from reef
+        public static final Distance MANUAL_LATERAL_OFFSET = Inches.of(1); // manual left/right shift
 
         public static Pose2d[] getReefPositions() {
             Pose2d[] reefPositions = new Pose2d[12];
@@ -294,33 +295,40 @@ public final class Constants {
                 double angle2 = Math.PI / 6 + Math.PI / 3 * (i + 1);
 
                 // Points on the hexagon
-                double x1 = centerX + pathRadius * Math.cos(angle1);
-                double y1 = centerY + pathRadius * Math.sin(angle1);
-                double x2 = centerX + pathRadius * Math.cos(angle2);
-                double y2 = centerY + pathRadius * Math.sin(angle2);
+                double x1 = centerX.in(Meters) + pathRadius.in(Meters) * Math.cos(angle1);
+                double y1 = centerY.in(Meters) + pathRadius.in(Meters) * Math.sin(angle1);
+                double x2 = centerX.in(Meters) + pathRadius.in(Meters) * Math.cos(angle2);
+                double y2 = centerY.in(Meters) + pathRadius.in(Meters) * Math.sin(angle2);
 
                 // Midpoint of each reef face
                 double midX = (x1 + x2) / 2;
                 double midY = (y1 + y2) / 2;
 
                 // Facing direction (normal of the face)
-                double faceAngle = Math.atan2(midY - centerY, midX - centerX) + Math.PI;
+                double faceAngle = Math.atan2(midY - centerY.in(Meters), midX - centerX.in(Meters)) + Math.PI;
 
                 // Offsets
-                double lateralOffset = pipeDistance; // left/right branch separation
+                double lateralOffset = pipeDistance.in(Meters); // left/right branch separation
                 double outwardOffset = OUTWARD_OFFSET.in(Meters); // distance away from reef
+                double manualLateralOffset = MANUAL_LATERAL_OFFSET.in(Meters); // manual left/right shift
 
                 // Left branch
                 double leftX = midX - lateralOffset * Math.sin(Math.PI / 3 * (i - 2));
                 double leftY = midY + lateralOffset * Math.cos(Math.PI / 3 * (i - 2));
                 leftX += outwardOffset * Math.cos(faceAngle);
                 leftY += outwardOffset * Math.sin(faceAngle);
+                // Manual lateral offset (perpendicular to faceAngle)
+                leftX += manualLateralOffset * Math.sin(faceAngle);
+                leftY -= manualLateralOffset * Math.cos(faceAngle);
 
                 // Right branch
                 double rightX = midX + lateralOffset * Math.sin(Math.PI / 3 * (i - 2));
                 double rightY = midY - lateralOffset * Math.cos(Math.PI / 3 * (i - 2));
                 rightX += outwardOffset * Math.cos(faceAngle);
                 rightY += outwardOffset * Math.sin(faceAngle);
+                // Manual lateral offset (perpendicular to faceAngle)
+                rightX += manualLateralOffset * Math.sin(faceAngle);
+                rightY -= manualLateralOffset * Math.cos(faceAngle);
 
                 // Store both poses, facing away from reef
                 reefPositions[2 * i] = AllianceFlipUtil.apply(
@@ -341,19 +349,5 @@ public final class Constants {
             return rotatedPositions;
         }
 
-        public static Distance RAISE_DISTANCE = Meters.of(.6);
-
-        public static final Distance l1AlignOffsetX = Meters.of(0.5);
-        public static final Distance l1AlignOffsetY = Meters.of(0.3);
-        public static final Angle l1AlignOffsetDegrees = Degrees.of(170);
-
-        public static Pose2d getL1Pose(AutoScoring.CoralObjective coralObjective) {
-            int face = coralObjective.branchId() / 2;
-            return AllianceFlipUtil.apply(FieldConstants.Reef.centerFaces[5-face].transformBy(
-                    new Transform2d(
-                            l1AlignOffsetX,
-                            l1AlignOffsetY.times(coralObjective.branchId() % 2 == 0 ? 1.0 : -1.0),
-                            new Rotation2d(l1AlignOffsetDegrees.times(coralObjective.branchId() % 2 == 0 ? 1.0 : -1.0)))));
-        }
     }
 }

@@ -5,7 +5,6 @@ import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.team9470.commands.AutoScoring;
 import com.team9470.commands.Autos;
-import com.team9470.subsystems.MusicPlayer;
 import com.team9470.subsystems.Superstructure;
 import com.team9470.subsystems.Swerve;
 import com.team9470.subsystems.vision.Vision;
@@ -13,13 +12,10 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 
 // TODO: Remove after debug done.
-
-import static com.team9470.Constants.*;
 
 import static edu.wpi.first.units.Units.*;
 
@@ -92,8 +88,8 @@ public class RobotContainer {
         // TODO: Remove / verify.
         xbox.rightTrigger()
             .onTrue(
-                superstructure.moveElevatorToHeight(ElevatorConstants.STOW_POSITION)
-                    .andThen(superstructure.intakeCoralGround())
+                superstructure.stow()
+                    .alongWith(superstructure.intakeCoralGround())
             ).onFalse(
                 superstructure.stopIntakeGround()
             );
@@ -105,7 +101,9 @@ public class RobotContainer {
         xbox.povUp()
             .whileTrue(
                     superstructure.getArm().getHomingCommand()
-                    .andThen(superstructure.getElevator().getHomingCommand()));
+                    .andThen(superstructure.getElevator().getHomingCommand())
+                            .andThen(superstructure.stow()))
+                .onFalse(superstructure.stow());
 
         xbox.povDown()
             .onTrue(superstructure.stow());
@@ -115,31 +113,27 @@ public class RobotContainer {
                 .onFalse(superstructure.armStop());
 
         xbox.povRight()
-            .whileTrue(superstructure.getIndexer().reverseCommand())
-                .onFalse(superstructure.getIndexer().stopCommand());
+            .whileTrue(superstructure.reverseCommand())
+                .onFalse(superstructure.getIndexer().stopCommand().alongWith(superstructure.getIntake().stopRollersCommand()));
 
         // TODO: Implement auto-align.
         xbox.a()
-            .toggleOnTrue(superstructure.prepareLevel(Superstructure.Level.L1)
-                    .finallyDo(superstructure::stow));
+            .onTrue(superstructure.prepareLevel(Superstructure.Level.L1));
 
         xbox.b()
-                .toggleOnTrue(superstructure.prepareLevel(Superstructure.Level.L2)
-                        .finallyDo(superstructure::stow));
+                .onTrue(superstructure.prepareLevel(Superstructure.Level.L2));
 
         xbox.x()
-                .toggleOnTrue(superstructure.prepareLevel(Superstructure.Level.L3)
-                        .finallyDo(superstructure::stow));
+                .onTrue(superstructure.prepareLevel(Superstructure.Level.L3));
 
         xbox.y()
-                .toggleOnTrue(superstructure.prepareLevel(Superstructure.Level.L4)
-                        .finallyDo(superstructure::stow));
+                .onTrue(superstructure.prepareLevel(Superstructure.Level.L4));
 
         xbox.leftBumper()
-                .onTrue(autoScoring.autoAlign(superstructure, AutoScoring.Side.LEFT));
+                .whileTrue(autoScoring.autoAlign(superstructure, AutoScoring.Side.LEFT));
 
         xbox.leftTrigger()
-                .onTrue(autoScoring.autoAlign(superstructure, AutoScoring.Side.RIGHT));
+                .whileTrue(autoScoring.autoAlign(superstructure, AutoScoring.Side.RIGHT));
 
         xbox.rightBumper()
                 .whileTrue(
