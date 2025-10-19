@@ -44,6 +44,27 @@ public class AutoScoring {
         }, Set.of(drivetrain, superstructure));
     }
 
+    public Command autoAlign(Superstructure superstructure) {
+        return Commands.defer(() -> {
+            CoralObjective objective = new CoralObjective(findClosestBranch(), superstructure.currentLevel);
+            coralObjective = objective;
+            SmartDashboard.putNumber("AutoScoring/Branch ID", objective.branchId());
+            SmartDashboard.putString("AutoScoring/Level", objective.level().name());
+            return createAutoAlignCommand(objective, drivetrain, false);
+        }, Set.of(drivetrain));
+    }
+
+    public Command autoAlign(Superstructure superstructure, Side side) {
+        return Commands.defer(() -> {
+            int branchId = findClosestBranch(side);
+            CoralObjective objective = new CoralObjective(branchId, superstructure.currentLevel);
+            coralObjective = objective;
+            SmartDashboard.putNumber("AutoScoring/Branch ID", branchId);
+            SmartDashboard.putString("AutoScoring/Level", objective.level().name());
+            return createAutoAlignCommand(objective, drivetrain, false);
+        }, Set.of(drivetrain));
+    }
+
     public void updateClosestReefPos() {
         setBranch(findClosestBranch());
     }
@@ -147,6 +168,12 @@ public class AutoScoring {
         Command driveAndPrepare = Commands.deadline(drive, prepare);
 
         return driveAndPrepare.andThen(superstructure.coralScore(objective.level()));
+    }
+
+    private static Command createAutoAlignCommand(CoralObjective objective, Swerve drivetrain, boolean straight) {
+        return straight
+                ? new DriveToPose(objective::getScoringPose, drivetrain, true)
+                : new DriveToPose(objective::getScoringPose, drivetrain);
     }
 
     public enum Side {
