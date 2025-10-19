@@ -5,6 +5,7 @@ import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.team9470.commands.AutoScoring;
 import com.team9470.commands.Autos;
+import com.team9470.subsystems.MusicPlayer;
 import com.team9470.subsystems.Superstructure;
 import com.team9470.subsystems.Swerve;
 import com.team9470.subsystems.vision.Vision;
@@ -117,23 +118,32 @@ public class RobotContainer {
 
         // TODO: Implement auto-align.
         xbox.a()
-            .onTrue(superstructure.prepareLevel(Superstructure.Level.L1));
+            .toggleOnTrue(superstructure.prepareLevel(Superstructure.Level.L1)
+                    .finallyDo(superstructure::stow));
 
         xbox.b()
-            .onTrue(superstructure.prepareLevel(Superstructure.Level.L2));
+                .toggleOnTrue(superstructure.prepareLevel(Superstructure.Level.L2)
+                        .finallyDo(superstructure::stow));
 
         xbox.x()
-            .onTrue(superstructure.prepareLevel(Superstructure.Level.L3));
+                .toggleOnTrue(superstructure.prepareLevel(Superstructure.Level.L3)
+                        .finallyDo(superstructure::stow));
 
         xbox.y()
-            .onTrue(superstructure.prepareLevel(Superstructure.Level.L4));
+                .toggleOnTrue(superstructure.prepareLevel(Superstructure.Level.L4)
+                        .finallyDo(superstructure::stow));
 
-        xbox.leftBumper()
-            .onTrue(autoScoring.autoScore(superstructure, AutoScoring.Side.LEFT));
+//        xbox.leftBumper()
+//            .onTrue(autoScoring.autoScore(superstructure, AutoScoring.Side.LEFT));
+//
+//        xbox.rightBumper()
+//            .onTrue(autoScoring.autoScore(superstructure, AutoScoring.Side.RIGHT));
+
 
         xbox.rightBumper()
-            .onTrue(autoScoring.autoScore(superstructure, AutoScoring.Side.RIGHT));
-
+                .whileTrue(
+                        superstructure.scoreHeldPiece()
+                );
 
 
     }

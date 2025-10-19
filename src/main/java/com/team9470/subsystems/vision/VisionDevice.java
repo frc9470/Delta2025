@@ -70,8 +70,8 @@ public class VisionDevice {
             Pose3d cameraPose = robotPose.plus(photonPoseEstimator.getRobotToCameraTransform());
             double timestamp = Utils.fpgaToCurrentTime(estimatedPose.timestampSeconds);
 
-            if (result.getTargets().size() < 2) {
-                if (result.getTargets().get(0).getPoseAmbiguity() > 0.2) return;
+            if (!hasUsableTargets(result.getTargets())) {
+                return;
             }
 
             double std_dev_multiplier = 1.0;
@@ -114,6 +114,18 @@ public class VisionDevice {
 
 
         }
+    }
+
+    static boolean hasUsableTargets(List<PhotonTrackedTarget> targets) {
+        if (targets.isEmpty()) {
+            return false;
+        }
+
+        if (targets.size() < 2) {
+            return targets.get(0).getPoseAmbiguity() <= 0.2;
+        }
+
+        return true;
     }
 
     private Pair<Double, Double> calculateDistanceStatistics(List<Pose3d> tagPoses, Pose3d cameraPose) {

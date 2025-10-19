@@ -44,7 +44,6 @@ public class Arm extends SubsystemBase {
 
     // --- State tracking ---
     private boolean rollersRunning = false;
-    private boolean hasItem = false;
     
     // Item type tracking
     private boolean holdingCoral = false;
@@ -80,7 +79,6 @@ public class Arm extends SubsystemBase {
         public Angle goal;
         public HomingState homingState;
         public boolean rollersRunning;
-        public boolean hasItem;
 
         public double setpointPositionRotations;
     }
@@ -101,6 +99,10 @@ public class Arm extends SubsystemBase {
 
         setpointPositionSignal = pivotMotor.getClosedLoopReference();
         setpointPositionSignal.setUpdateFrequency(refreshRate, 0.1);
+
+        MusicPlayer.getInstance().addInstrument(pivotMotor);
+        MusicPlayer.getInstance().addInstrument(rollerMotor);
+
     }
 
     @Override
@@ -114,9 +116,6 @@ public class Arm extends SubsystemBase {
             homingState = HomingState.IDLE;
         }
         periodicIO.homingState = homingState;
-
-        // Item detection and hold logic
-//        updateItemDetection();
 
         writePeriodicOutputs();
 
@@ -162,7 +161,6 @@ public class Arm extends SubsystemBase {
 
         periodicIO.goal = targetAngle;
         periodicIO.rollersRunning = rollersRunning;
-        periodicIO.hasItem = hasItem;
 
         periodicIO.setpointPositionRotations = setpointPositionSignal.asSupplier().get();
     }
@@ -192,24 +190,6 @@ public class Arm extends SubsystemBase {
                 break;
         }
     }
-
-//    /** Update item detection and hold logic */
-//    private void updateItemDetection() {
-//        // Check if rollers are drawing high current (indicating item resistance)
-//        boolean rollerHighCurrent = periodicIO.rollerCurrent.gte(ArmConstants.ITEM_DETECTION_CURRENT);
-//
-//        if (rollerHighCurrent) {
-//            hasItem = true;
-//        } else if (!holdingItem) {
-//            hasItem = false;
-//        }
-//
-//        // If we have an item and rollers are running, switch to hold mode
-//        if (hasItem && rollersRunning && !holdingItem) {
-//            holdingItem = true;
-//            holdItem();
-//        }
-//    }
 
     /** Write outputs to motors */
     private void writePeriodicOutputs() {
@@ -256,7 +236,6 @@ public class Arm extends SubsystemBase {
     public void startIntake() {
         rollerMotor.setVoltage(ArmConstants.ROLLER_INTAKE_SPEED.in(Volts));
         rollersRunning = true;
-        hasItem = false;
     }
 
     /** Start output rollers */
@@ -284,11 +263,6 @@ public class Arm extends SubsystemBase {
         homingStartTime = Seconds.of(Timer.getFPGATimestamp());;
     }
 
-    /** Check if item is detected */
-    public boolean hasItem() {
-        return hasItem;
-    }
-
     /** Check if rollers are running */
     public boolean areRollersRunning() {
         return rollersRunning;
@@ -314,7 +288,6 @@ public class Arm extends SubsystemBase {
     public void clearGamePieceFlags() {
         holdingCoral = false;
         holdingAlgae = false;
-        hasItem = false;
     }
 
     /** Check if holding coral */
@@ -398,7 +371,7 @@ public class Arm extends SubsystemBase {
                     }
                     @Override
                     public boolean isFinished() {
-                        return !hasItem(); // Stop when item is no longer detected
+                        return !isHoldingItem(); // Stop when item is no longer detected
                     }
                     @Override
                     public void end(boolean interrupted) {
@@ -416,7 +389,7 @@ public class Arm extends SubsystemBase {
                     }
                     @Override
                     public boolean isFinished() {
-                        return !hasItem(); // Stop when item is no longer detected
+                        return !isHoldingItem(); // Stop when item is no longer detected
                     }
                     @Override
                     public void end(boolean interrupted) {

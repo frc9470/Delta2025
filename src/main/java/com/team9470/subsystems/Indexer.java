@@ -7,13 +7,13 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.team254.lib.drivers.TalonFXFactory;
 import com.team254.lib.drivers.TalonUtil;
-import com.team254.lib.util.DelayedBoolean;
 import com.team9470.Constants.IndexerConstants;
 import com.team9470.Ports;
 
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -30,40 +30,38 @@ public class Indexer extends SubsystemBase {
     
 
     private final DigitalInput coralSensor = new DigitalInput(Ports.CRADLE_BREAK); //beam break
+
+    private final Debouncer coralDebouncer = new Debouncer(
+        IndexerConstants.CORAL_DETECTION_TIMEOUT,
+        DebounceType.kRising
+    );
+
+    private boolean coralInCradle;
     
     /** STATUS SIGNALS for current monitoring */
     private final StatusSignal<Current> motor1CurrentSignal = indexerMotor1.getStatorCurrent();
     private final StatusSignal<Current> motor2CurrentSignal = indexerMotor2.getStatorCurrent();
     
-    /** Delayed boolean for coral detection debouncing */
-    private final DelayedBoolean coralDetected = new DelayedBoolean(
-        Timer.getFPGATimestamp(), 
-        IndexerConstants.CORAL_DETECTION_TIMEOUT, 
-        false
-    );
-    
-    /** State tracking */
-    private boolean isRunning = false;
-    private boolean coralPresent = false;
-
     public Indexer() {
         // Apply motor configurations
         TalonUtil.applyAndCheckConfiguration(indexerMotor1, IndexerConstants.getMotorConfig());
         TalonUtil.applyAndCheckConfiguration(indexerMotor2, IndexerConstants.getMotorConfig());
-        
+
         // Set up status signals for current monitoring
         motor1CurrentSignal.setUpdateFrequency(50, 0.1);
         motor2CurrentSignal.setUpdateFrequency(50, 0.1);
-        
+
+        coralInCradle = readCradleBeamBreak();
+
         // Set default command to stop the indexer
         setDefaultCommand(stopCommand());
+        MusicPlayer.getInstance().addInstrument(indexerMotor1);
+        MusicPlayer.getInstance().addInstrument(indexerMotor2);
     }
 
     @Override
     public void periodic() {
-        // Update delayed boolean for debouncing
-        coralDetected.update(Timer.getFPGATimestamp(), coralPresent);
-
+        coralInCradle = coralDebouncer.calculate(readCradleBeamBreak());
         // Push values to SmartDashboard
         logTelemetry();
     }
@@ -72,6 +70,11 @@ public class Indexer extends SubsystemBase {
         SmartDashboard.putBoolean("Indexer/hasCoral", hasCoral());
         SmartDashboard.putNumber("Indexer/Current1", indexerMotor1.getStatorCurrent().getValueAsDouble());
         SmartDashboard.putNumber("Indexer/Current2", indexerMotor2.getStatorCurrent().getValueAsDouble());
+    }
+
+    private boolean readCradleBeamBreak() {
+        // The sensor returns false when blocked, so invert to represent coral present.
+        return !coralSensor.get();
     }
 
     /**
@@ -111,40 +114,16 @@ public class Indexer extends SubsystemBase {
      * @return true if coral is detected in the indexer
      */
     public boolean hasCoral() {
-        return coralDetected.update(Timer.getFPGATimestamp(), coralPresent);
+        return coralInCradle;
     }
-
-    /**
-     * Raw beam break state for the cradle. True when a coral is blocking the sensor.
-     */
-    public boolean isCoralInCradle() {
-        return !coralSensor.get();
-    }
-    /*
-
-    public Command intakeToOutputCommand() {
-        return this.run(this::startIndexer)
-                .until(this::hasCoral)
-                .andThen(this.run(this::startIndexer))
-                .until(() -> !hasCoral())
-                .andThen(this::stopIndexer);
-    }
-
-    public Command intakeAndHoldCommand(){
-        return this.run(this::startIndexer)
-        .until(this::hasCoral)
-        .andThen(this.run(this::holdIndexer));
-    }
-    */
-
     /**
      * Outputs coral into robot, assuming coral is being held right now
      * @return command
      */
-    public Command outputCommand(){
+    public Command outputCommand() {
         return this.run(this::startIndexer)
-        .until(() -> !hasCoral())
-        .andThen(this::stopIndexer);
+                .until(() -> !hasCoral())
+                .andThen(this::stopIndexer);
     }
 
     /**

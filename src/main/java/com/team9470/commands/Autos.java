@@ -81,13 +81,13 @@ public class Autos extends SubsystemBase{
         /**
          * Creates a command that performs a sweeping motion through the specified waypoints.
          * The robot will move through each position in sequence, maintaining the specified heading at each waypoint.
-         * 
+         *
          * @return Command that executes the sweeping motion
          */
         public Command getSweepMotionCommand(boolean top) {
         // Define different waypoints for top vs bottom source
         Pose2d[] waypoints;
-        
+
         if (top) {
             waypoints = new Pose2d[]{
                 new Pose2d(2.8092904090881348, 7.4921770095825195, Rotation2d.fromDegrees(0)),
@@ -154,7 +154,6 @@ public class Autos extends SubsystemBase{
         routine.active().onTrue(
                 startToC3.resetOdometry().andThen(
                         scoreL4AutoWaitLower(new InstantCommand(), SCORING_DELAY, 7)
-                                .andThen(superstructure.algaeDown())
                 )
 
         );
@@ -172,7 +171,6 @@ public class Autos extends SubsystemBase{
 
         startToC3.done().onTrue(
                 scoreL4WaitLower(new InstantCommand(), SCORING_DELAY)
-                        .andThen(superstructure.algaeDown())
         );
         return routine;
     }
@@ -182,7 +180,7 @@ public class Autos extends SubsystemBase{
 
         routine.active().onTrue(
                 AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(7, Superstructure.Level.L4), swerve)
-                        .andThen(Commands.parallel(superstructure.algaeDown(), elevator.L0()))
+                        .andThen(elevator.L0())
         );
 
         return routine;
@@ -197,8 +195,7 @@ public class Autos extends SubsystemBase{
         routine.active().onTrue(
                 Commands.sequence(
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(9, Superstructure.Level.L4), swerve),
-                        elevator.L0()
-                                .alongWith(superstructure.algaeUp())
+                        Commands.parallel(elevator.L0())
                                 .withDeadline(alignToSourceWait(true)),
 
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(10, Superstructure.Level.L4), swerve),
@@ -210,8 +207,7 @@ public class Autos extends SubsystemBase{
                                 .withDeadline(alignToSourceWait(true)),
 
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(11, Superstructure.Level.L3), swerve),
-                        elevator.L0()
-                                .alongWith(superstructure.algaeDown())
+                        Commands.parallel(elevator.L0())
                                 .withDeadline(alignToSourceWait(true)),
 
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(10, Superstructure.Level.L3), swerve)
@@ -227,8 +223,7 @@ public class Autos extends SubsystemBase{
         routine.active().onTrue(
                 Commands.sequence(
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(4, Superstructure.Level.L4), swerve),
-                        elevator.L0()
-                                .alongWith(superstructure.algaeUp())
+                        Commands.parallel(elevator.L0())
                                 .withDeadline(alignToSourceWait(false)),
 
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(3, Superstructure.Level.L4), swerve),
@@ -240,8 +235,7 @@ public class Autos extends SubsystemBase{
                                 .withDeadline(alignToSourceWait(false)),
 
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(2, Superstructure.Level.L3), swerve),
-                        elevator.L0()
-                                .alongWith(superstructure.algaeDown())
+                        Commands.parallel(elevator.L0())
                                 .withDeadline(alignToSourceWait(false)),
 
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(3, Superstructure.Level.L3), swerve)
@@ -257,11 +251,11 @@ public class Autos extends SubsystemBase{
         routine.active().onTrue(
                 Commands.sequence(
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(9, Superstructure.Level.L4), swerve),
-                        elevator.L0().alongWith(superstructure.algaeUp())
+                        Commands.parallel(elevator.L0())
                                 .withDeadline(alignToSource(true)),
                         new WaitCommand(INTAKE_DELAY),
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(10, Superstructure.Level.L4), swerve),
-                        elevator.L0().alongWith(superstructure.algaeDown())
+                        Commands.parallel(elevator.L0())
                                 .withDeadline(alignToSource(true)),
                         new WaitCommand(INTAKE_DELAY),
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(11, Superstructure.Level.L4), swerve),
@@ -269,7 +263,7 @@ public class Autos extends SubsystemBase{
                                 .withDeadline(alignToSource(true)),
                         new WaitCommand(INTAKE_DELAY),
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(11, Superstructure.Level.L2), swerve),
-                        elevator.L0().alongWith(superstructure.algaeUp())
+                        Commands.parallel(elevator.L0())
                                 .withDeadline(alignToSource(true)),
                         new WaitCommand(INTAKE_DELAY),
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(10, Superstructure.Level.L2), swerve)
@@ -285,11 +279,11 @@ public class Autos extends SubsystemBase{
         routine.active().onTrue(
                 Commands.sequence(
                         AutoScoring.autoScoreStraight(superstructure, new AutoScoring.CoralObjective(4, Superstructure.Level.L4), swerve),
-                        elevator.L0().alongWith(superstructure.algaeUp())
+                        Commands.parallel(elevator.L0())
                                 .withDeadline(alignToSource(false)),
                         new WaitCommand(INTAKE_DELAY),
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(3, Superstructure.Level.L4), swerve),
-                        elevator.L0().alongWith(superstructure.algaeDown())
+                        Commands.parallel(elevator.L0())
                                 .withDeadline(alignToSource(false)),
                         new WaitCommand(INTAKE_DELAY),
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(2, Superstructure.Level.L4), swerve),
@@ -297,7 +291,7 @@ public class Autos extends SubsystemBase{
                                 .withDeadline(alignToSource(false)),
                         new WaitCommand(INTAKE_DELAY),
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(2, Superstructure.Level.L3), swerve),
-                        elevator.L0().alongWith(superstructure.algaeUp())
+                        Commands.parallel(elevator.L0())
                                 .withDeadline(alignToSource(false)),
                         new WaitCommand(INTAKE_DELAY),
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(3, Superstructure.Level.L3), swerve)

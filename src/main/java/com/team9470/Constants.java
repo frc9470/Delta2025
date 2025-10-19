@@ -26,9 +26,9 @@ public final class Constants {
     }
 
     public static class VisionConstants {
-        public static final Transform3d FRONT_LEFT_CAMERA_OFFSET = new Transform3d(Units.Inches.of(+12.290427), Units.Inches.of(12.710), Units.Inches.of(+8.803138),
+        public static final Transform3d FRONT_LEFT_CAMERA_OFFSET = new Transform3d(Units.Inches.of(+12.290427), Units.Inches.of(10.710), Units.Inches.of(+8.803138),
                 new Rotation3d(0, Math.toRadians(-28.125), Math.toRadians(-45)));
-        public static final Transform3d FRONT_RIGHT_CAMERA_OFFSET = new Transform3d(Units.Inches.of(+12.290427), Units.Inches.of(-12.710), Units.Inches.of(+8.803138),
+        public static final Transform3d FRONT_RIGHT_CAMERA_OFFSET = new Transform3d(Units.Inches.of(+12.290427), Units.Inches.of(-10.710), Units.Inches.of(+8.803138),
                 new Rotation3d(0, Math.toRadians(-28.125), Math.toRadians(45)));
     }
 
@@ -56,10 +56,10 @@ public final class Constants {
         public static final Distance L1 = Meters.of(0.22);
         public static final Distance L2 = Meters.of(0.0);
         public static final Distance L3 = Meters.of(0.36);
-        public static final Distance L4 = Meters.of(0.94);
+        public static final Distance L4 = Meters.of(0.97);
         public static final Distance INTAKE = Meters.of(0);
 
-        public static final Distance STOW_POSITION = L1;
+        public static final Distance STOW_POSITION = Meters.of(0.15);
 
 
         public static TalonFXConfiguration ElevatorFXConfig(){
@@ -69,7 +69,7 @@ public final class Constants {
             config.MotionMagic.MotionMagicAcceleration = ACCELERATION.in(MetersPerSecondPerSecond) * rotationsPerMeter;
             config.MotionMagic.MotionMagicJerk = JERK;
             config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
-            config.Slot0.kP = 5;
+            config.Slot0.kP = 6;
             config.Slot0.kI = 0.0;
             config.Slot0.kD = 0; // 1
             config.Slot0.kG = 0.26; // 0.5 it's drifting up, 0.3 little too high, 0.28 little too high
@@ -100,7 +100,7 @@ public final class Constants {
         // Current thresholds for coral detection
         public static final Current CORAL_DETECTION_CURRENT = Amps.of(8.0);
         
-        // Timeout for coral detection debouncing
+        // Timeout for coral detection debouncing (rising-edge filter)
         public static final double CORAL_DETECTION_TIMEOUT = 0.1; // seconds
         
         public static TalonFXConfiguration getMotorConfig() {
@@ -216,7 +216,7 @@ public final class Constants {
         
         // Item detection
         public static final Current ITEM_DETECTION_CURRENT = Amps.of(30.0);
-        public static final Time INTAKE_TIMEOUT = Seconds.of(1.2);
+        public static final Time INTAKE_TIMEOUT = Seconds.of(0.5);
 
         // Physical properties
         public static final double GEAR_RATIO = (44.0 / 16.0) * (44.0 / 18.0) * (60.0 / 12.0);
