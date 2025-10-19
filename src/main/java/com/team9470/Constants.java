@@ -26,9 +26,9 @@ public final class Constants {
     }
 
     public static class VisionConstants {
-        public static final Transform3d FRONT_LEFT_CAMERA_OFFSET = new Transform3d(Units.Inches.of(+12.290427), Units.Inches.of(12.710), Units.Inches.of(+8.803138),
+        public static final Transform3d FRONT_LEFT_CAMERA_OFFSET = new Transform3d(Units.Inches.of(+12.290427), Units.Inches.of(10.710), Units.Inches.of(+8.803138),
                 new Rotation3d(0, Math.toRadians(-28.125), Math.toRadians(-45)));
-        public static final Transform3d FRONT_RIGHT_CAMERA_OFFSET = new Transform3d(Units.Inches.of(+12.290427), Units.Inches.of(-12.710), Units.Inches.of(+8.803138),
+        public static final Transform3d FRONT_RIGHT_CAMERA_OFFSET = new Transform3d(Units.Inches.of(+12.290427), Units.Inches.of(-10.710), Units.Inches.of(+8.803138),
                 new Rotation3d(0, Math.toRadians(-28.125), Math.toRadians(45)));
     }
 
