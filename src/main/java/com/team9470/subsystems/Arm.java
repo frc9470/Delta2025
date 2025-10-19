@@ -99,6 +99,10 @@ public class Arm extends SubsystemBase {
 
         setpointPositionSignal = pivotMotor.getClosedLoopReference();
         setpointPositionSignal.setUpdateFrequency(refreshRate, 0.1);
+
+        MusicPlayer.getInstance().addInstrument(pivotMotor);
+        MusicPlayer.getInstance().addInstrument(rollerMotor);
+
     }
 
     @Override

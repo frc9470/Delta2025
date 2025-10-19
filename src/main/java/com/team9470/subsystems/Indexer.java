@@ -55,6 +55,8 @@ public class Indexer extends SubsystemBase {
 
         // Set default command to stop the indexer
         setDefaultCommand(stopCommand());
+        MusicPlayer.getInstance().addInstrument(indexerMotor1);
+        MusicPlayer.getInstance().addInstrument(indexerMotor2);
     }
 
     @Override

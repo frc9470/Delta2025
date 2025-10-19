@@ -75,9 +75,8 @@ public class Superstructure extends SubsystemBase {
         boolean coralInCradle = indexer.hasCoral();
         boolean newlyDetected = coralInCradle && pieceState == GamePieceState.EMPTY;
         boolean cradleCleared = !coralInCradle && pieceState == GamePieceState.CORAL_IN_CRADLE;
-        if (coralInCradle)
-            pieceState = GamePieceState.CORAL_IN_CRADLE;
         if(newlyDetected) {
+            pieceState = GamePieceState.CORAL_IN_CRADLE;
             if (!arm.isHoldingItem() && autoPickupCommand == null) {
                 autoPickupCommand = coralCradlePickup();
                 CommandScheduler.getInstance().schedule(autoPickupCommand);
@@ -115,10 +114,13 @@ public class Superstructure extends SubsystemBase {
         } else {
             SmartDashboard.putString("Superstructure/Commands/Arm", "null");
         }
-    }
 
-    public Command reverseCoral() {
-        return indexer.reverseCommand();
+        Command currentIntakeCommand = intake.getCurrentCommand();
+        if (currentIntakeCommand != null) {
+            SmartDashboard.putString("Superstructure/Commands/Intake", intake.getCurrentCommand().getName());
+        } else {
+            SmartDashboard.putString("Superstructure/Commands/Intake", "null");
+        }
     }
 
     public Command raise(int level) {
@@ -346,7 +348,7 @@ public class Superstructure extends SubsystemBase {
                 new ParallelCommandGroup(
                         armCommand,
                         Commands.sequence(
-                                new WaitUntilCommand(() -> arm.getAngle().isNear(releaseAngle, Degrees.of(3)))
+                                new WaitUntilCommand(() -> arm.getAngle().isNear(releaseAngle, Degrees.of(5)))
                                         .withTimeout(2.0),
                                 new ParallelCommandGroup(
                                         new RunCommand(arm::startOutput),
@@ -448,14 +450,6 @@ public class Superstructure extends SubsystemBase {
 
     public Command stopIntakeGround() {
         return intake.retractAndStopRollersCommand();
-    }
-
-    public Command intakeAlgaeGround() {
-        return algaeGroundPickup();
-    }
-
-    public Command intakeAlgaeReef() {
-        return algaeReefPickup(Level.L2);
     }
 
     /**

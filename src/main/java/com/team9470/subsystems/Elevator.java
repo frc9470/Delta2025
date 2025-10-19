@@ -161,6 +161,8 @@ public class Elevator extends SubsystemBase {
         elevatorLigament = elevatorRoot.append(new MechanismLigament2d("Carriage", elevatorSim.getPositionMeters() + 0.58, 90));
 
         // Publish the visualization to Shuffleboard (or SmartDashboard)
+        MusicPlayer.getInstance().addInstrument(elevatorMotor);
+        MusicPlayer.getInstance().addInstrument(elevatorMotorFollower);
     }
 
     @Override

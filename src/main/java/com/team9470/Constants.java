@@ -56,10 +56,10 @@ public final class Constants {
         public static final Distance L1 = Meters.of(0.22);
         public static final Distance L2 = Meters.of(0.0);
         public static final Distance L3 = Meters.of(0.36);
-        public static final Distance L4 = Meters.of(0.94);
+        public static final Distance L4 = Meters.of(0.97);
         public static final Distance INTAKE = Meters.of(0);
 
-        public static final Distance STOW_POSITION = L1;
+        public static final Distance STOW_POSITION = Meters.of(0.15);
 
 
         public static TalonFXConfiguration ElevatorFXConfig(){
@@ -69,7 +69,7 @@ public final class Constants {
             config.MotionMagic.MotionMagicAcceleration = ACCELERATION.in(MetersPerSecondPerSecond) * rotationsPerMeter;
             config.MotionMagic.MotionMagicJerk = JERK;
             config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
-            config.Slot0.kP = 5;
+            config.Slot0.kP = 6;
             config.Slot0.kI = 0.0;
             config.Slot0.kD = 0; // 1
             config.Slot0.kG = 0.26; // 0.5 it's drifting up, 0.3 little too high, 0.28 little too high
@@ -216,7 +216,7 @@ public final class Constants {
         
         // Item detection
         public static final Current ITEM_DETECTION_CURRENT = Amps.of(30.0);
-        public static final Time INTAKE_TIMEOUT = Seconds.of(1.2);
+        public static final Time INTAKE_TIMEOUT = Seconds.of(0.5);
 
         // Physical properties
         public static final double GEAR_RATIO = (44.0 / 16.0) * (44.0 / 18.0) * (60.0 / 12.0);

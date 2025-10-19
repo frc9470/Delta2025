@@ -106,6 +106,9 @@ public class Intake extends SubsystemBase {
         setpointSignal.setUpdateFrequency(refreshRate, 0.1);
         setpointVelocitySignal = armMotor.getClosedLoopReferenceSlope();
         setpointVelocitySignal.setUpdateFrequency(refreshRate, 0.1);
+
+        MusicPlayer.getInstance().addInstrument(armMotor);
+        MusicPlayer.getInstance().addInstrument(rollerMotor);
     }
 
     @Override
