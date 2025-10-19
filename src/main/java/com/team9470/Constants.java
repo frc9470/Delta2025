@@ -373,12 +373,12 @@ public final class Constants {
         public static final Angle l1AlignOffsetDegrees = Degrees.of(170);
 
         public static Pose2d getL1Pose(AutoScoring.CoralObjective coralObjective) {
-            int face = coralObjective.branchId() / 2;
+            int face = coralObjective.getFace();
             return AllianceFlipUtil.apply(FieldConstants.Reef.centerFaces[5-face].transformBy(
                     new Transform2d(
                             l1AlignOffsetX,
-                            l1AlignOffsetY.times(coralObjective.branchId() % 2 == 0 ? 1.0 : -1.0),
-                            new Rotation2d(l1AlignOffsetDegrees.times(coralObjective.branchId() % 2 == 0 ? 1.0 : -1.0)))));
+                            l1AlignOffsetY.times(coralObjective.position() == AutoScoring.ReefPosition.LEFT ? 1.0 : -1.0),
+                            new Rotation2d(l1AlignOffsetDegrees.times(coralObjective.position() == AutoScoring.ReefPosition.LEFT ? 1.0 : -1.0)))));
         }
     }
 }
