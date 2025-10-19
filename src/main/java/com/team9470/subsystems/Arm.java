@@ -45,7 +45,6 @@ public class Arm extends SubsystemBase {
     // --- State tracking ---
     private boolean rollersRunning = false;
     private boolean hasItem = false;
-    private boolean holdingItem = false;
     
     // Item type tracking
     private boolean holdingCoral = false;
@@ -82,7 +81,6 @@ public class Arm extends SubsystemBase {
         public HomingState homingState;
         public boolean rollersRunning;
         public boolean hasItem;
-        public boolean holdingItem;
 
         public double setpointPositionRotations;
     }
@@ -146,8 +144,7 @@ public class Arm extends SubsystemBase {
 
         // Item detection / roller state
         SmartDashboard.putBoolean("Arm/RollersRunning", periodicIO.rollersRunning);
-        SmartDashboard.putBoolean("Arm/HasItem", periodicIO.hasItem);
-        SmartDashboard.putBoolean("Arm/HoldingItem", periodicIO.holdingItem);
+        SmartDashboard.putBoolean("Arm/HoldingItem", isHoldingItem());
 
         SmartDashboard.putNumber("Arm/Setpoint/Position_Deg", periodicIO.setpointPositionRotations * 360);
     }
@@ -166,7 +163,6 @@ public class Arm extends SubsystemBase {
         periodicIO.goal = targetAngle;
         periodicIO.rollersRunning = rollersRunning;
         periodicIO.hasItem = hasItem;
-        periodicIO.holdingItem = holdingItem;
 
         periodicIO.setpointPositionRotations = setpointPositionSignal.asSupplier().get();
     }
@@ -260,7 +256,6 @@ public class Arm extends SubsystemBase {
     public void startIntake() {
         rollerMotor.setVoltage(ArmConstants.ROLLER_INTAKE_SPEED.in(Volts));
         rollersRunning = true;
-        holdingItem = false;
         hasItem = false;
     }
 
@@ -268,21 +263,18 @@ public class Arm extends SubsystemBase {
     public void startOutput() {
         rollerMotor.setVoltage(ArmConstants.ROLLER_OUTPUT_SPEED.in(Volts));
         rollersRunning = true;
-        holdingItem = false;
     }
 
     /** Hold item with stalling voltage */
     public void holdItem() {
         rollerMotor.setVoltage(ArmConstants.ROLLER_HOLD_SPEED.in(Volts));
         rollersRunning = true;
-        holdingItem = true;
     }
 
     /** Stop rollers */
     public void stopRollers() {
         rollerMotor.stopMotor();
         rollersRunning = false;
-        holdingItem = false;
     }
 
     /** Trigger homing sequence */
@@ -302,21 +294,11 @@ public class Arm extends SubsystemBase {
         return rollersRunning;
     }
 
-    /** Check if holding item */
-    public boolean isHoldingItem() {
-        return holdingItem;
-    }
-
     /** Set item type being held */
     public void setHoldingCoral(boolean holding) {
         holdingCoral = holding;
         if (holding) {
             holdingAlgae = false;
-        }
-        if (!holding) {
-            holdingItem = false;
-        } else {
-            holdingItem = true;
         }
     }
 
@@ -326,19 +308,12 @@ public class Arm extends SubsystemBase {
         if (holding) {
             holdingCoral = false;
         }
-        if (!holding) {
-            holdingItem = false;
-        } else {
-            holdingItem = true;
-        }
-
     }
 
     /** Clears knowledge of held game pieces. */
     public void clearGamePieceFlags() {
         holdingCoral = false;
         holdingAlgae = false;
-        holdingItem = false;
         hasItem = false;
     }
 
@@ -354,7 +329,7 @@ public class Arm extends SubsystemBase {
 
     /** Command to move the arm to the stow angle. */
     public Command stowCommand() {
-        return getMoveToAngleCommand(ArmConstants.STOW_ANGLE);
+        return moveCommand(ArmConstants.STOW_ANGLE);
     }
 
     /** Returns whether the arm is close to the stow position. */
@@ -367,9 +342,9 @@ public class Arm extends SubsystemBase {
     /**
      * Returns a command that moves the arm to the specified angle
      */
-    public Command getMoveToAngleCommand(Angle angle) {
+    public Command moveCommand(Angle angle) {
         return this.run(() -> setTargetAngle(angle))
-                .until(() -> getAngle().isNear(angle, Degrees.of(2)));
+                .until(() -> getAngle().isNear(angle, Degrees.of(5)));
     }
 
     /**
@@ -383,118 +358,39 @@ public class Arm extends SubsystemBase {
     // --- Intake Commands ---
 
     public Command coralIntakeCommand() {
-        return getMoveToAngleCommand(ArmConstants.CORAL_INTAKE_ANGLE)
+        return moveCommand(ArmConstants.CORAL_INTAKE_ANGLE)
                 .andThen(this.run(this::startIntake));
     }
 
     public Command algaeGroundIntakeCommand() {
-        return getMoveToAngleCommand(ArmConstants.ALGAE_GROUND_INTAKE_ANGLE)
+        return moveCommand(ArmConstants.ALGAE_GROUND_INTAKE_ANGLE)
                 .andThen(this.run(this::startIntake));
     }
 
     public Command algaeReefIntakeCommand() {
-        return getMoveToAngleCommand(ArmConstants.ALGAE_REEF_INTAKE_ANGLE)
+        return moveCommand(ArmConstants.ALGAE_REEF_INTAKE_ANGLE)
                 .andThen(this.run(this::startIntake));
     }
 
     // --- Coral Scoring Commands ---
 
-    public Command coralL4BeforeScoringCommand() {
-        return getMoveToAngleCommand(ArmConstants.CORAL_L4_BEFORE_SCORING);
+    public Command coralBeforeScoringCommand(Angle angle) {
+        return moveCommand(angle);
     }
 
-    public Command coralL4ScoringCommand() {
-        return getMoveToAngleCommand(ArmConstants.CORAL_L4_SCORING)
-                .andThen(new Command() {
-                    @Override
-                    public void execute() {
-                        startOutput();
-                    }
-                    @Override
-                    public boolean isFinished() {
-                        return !hasItem(); // Stop when item is no longer detected
-                    }
-                    @Override
-                    public void end(boolean interrupted) {
-                        stopRollers();
-                    }
-                });
+    public Command coralScoringCommand(Angle angle) {
+        return moveCommand(angle);
     }
 
-    public Command coralL3BeforeScoringCommand() {
-        return getMoveToAngleCommand(ArmConstants.CORAL_L3_BEFORE_SCORING);
-    }
-
-    public Command coralL3ScoringCommand() {
-        return getMoveToAngleCommand(ArmConstants.CORAL_L3_SCORING)
-                .andThen(new Command() {
-                    @Override
-                    public void execute() {
-                        startOutput();
-                    }
-                    @Override
-                    public boolean isFinished() {
-                        return !hasItem(); // Stop when item is no longer detected
-                    }
-                    @Override
-                    public void end(boolean interrupted) {
-                        stopRollers();
-                    }
-                });
-    }
-
-    public Command coralL2BeforeScoringCommand() {
-        return getMoveToAngleCommand(ArmConstants.CORAL_L2_BEFORE_SCORING);
-    }
-
-    public Command coralL2ScoringCommand() {
-        return getMoveToAngleCommand(ArmConstants.CORAL_L2_SCORING)
-                .andThen(new Command() {
-                    @Override
-                    public void execute() {
-                        startOutput();
-                    }
-                    @Override
-                    public boolean isFinished() {
-                        return !hasItem(); // Stop when item is no longer detected
-                    }
-                    @Override
-                    public void end(boolean interrupted) {
-                        stopRollers();
-                    }
-                });
-    }
-
-    public Command coralL1ScoringCommand() {
-        return getMoveToAngleCommand(ArmConstants.CORAL_L1_SCORING)
-                .andThen(new Command() {
-                    @Override
-                    public void execute() {
-                        startOutput();
-                    }
-                    @Override
-                    public boolean isFinished() {
-                        return !hasItem(); // Stop when item is no longer detected
-                    }
-                    @Override
-                    public void end(boolean interrupted) {
-                        stopRollers();
-                    }
-                });
-    }
-
-    public Command coralL1BeforeScoringCommand() {
-        return getMoveToAngleCommand(ArmConstants.CORAL_L1_BEFORE_SCORING);
-    }
 
     // --- Algae Scoring Commands ---
 
     public Command algaeBargeBeforeScoringCommand() {
-        return getMoveToAngleCommand(ArmConstants.ALGAE_BARGE_BEFORE_SCORING);
+        return moveCommand(ArmConstants.ALGAE_BARGE_BEFORE_SCORING);
     }
 
     public Command algaeBargeScoringCommand() {
-        return getMoveToAngleCommand(ArmConstants.ALGAE_BARGE_SCORING)
+        return moveCommand(ArmConstants.ALGAE_BARGE_SCORING)
                 .andThen(new Command() {
                     @Override
                     public void execute() {
@@ -512,7 +408,7 @@ public class Arm extends SubsystemBase {
     }
 
     public Command algaeProcessorScoringCommand() {
-        return getMoveToAngleCommand(ArmConstants.ALGAE_PROCESSOR_SCORING)
+        return moveCommand(ArmConstants.ALGAE_PROCESSOR_SCORING)
                 .andThen(new Command() {
                     @Override
                     public void execute() {
@@ -543,5 +439,13 @@ public class Arm extends SubsystemBase {
 
     public Command holdItemCommand() {
         return this.run(this::holdItem);
+    }
+
+    public boolean isHoldingItem() {
+        try {
+            return periodicIO.rollerCurrent.gte(ArmConstants.ITEM_DETECTION_CURRENT);
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

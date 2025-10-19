@@ -2,6 +2,7 @@ package com.team9470.subsystems;
 
 import com.team9470.Constants.ElevatorConstants;
 import com.team9470.Constants.ArmConstants;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
@@ -11,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.*;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Seconds;
 
 public class Superstructure extends SubsystemBase {
@@ -18,6 +20,7 @@ public class Superstructure extends SubsystemBase {
     private final Indexer indexer;
     private final Arm arm;
     private final Intake intake;
+    private final Swerve drivetrain;
 
     private enum GamePieceState {
         EMPTY,
@@ -51,18 +54,20 @@ public class Superstructure extends SubsystemBase {
 
     private GamePieceState pieceState = GamePieceState.EMPTY;
     private Mode activeMode = Mode.NONE;
-    private Level currentLevel = Level.L1;
+    public Level currentLevel = Level.L1;
     private Command autoPickupCommand;
 
-    public Superstructure(Mechanism2d mech) {
+    public Superstructure(Mechanism2d mech, Swerve drivetrain) {
         this.elevator = new Elevator(mech);
         this.indexer = new Indexer();
         this.arm = new Arm();
         this.intake = new Intake();
+        this.drivetrain = drivetrain;
     }
 
     @Override
     public void periodic() {
+        // After the auto-pickup command is done, it is de-scheduled.
         if (autoPickupCommand != null && !autoPickupCommand.isScheduled()) {
             autoPickupCommand = null;
         }
@@ -70,29 +75,30 @@ public class Superstructure extends SubsystemBase {
         boolean cradle = indexer.isCoralInCradle();
         boolean newlyDetected = cradle && pieceState == GamePieceState.EMPTY;
         boolean cradleCleared = !cradle && pieceState == GamePieceState.CORAL_IN_CRADLE;
-
-        if (newlyDetected) {
+        if (cradle)
             pieceState = GamePieceState.CORAL_IN_CRADLE;
-
+        if(newlyDetected) {
             if (!arm.isHoldingItem() && autoPickupCommand == null) {
                 autoPickupCommand = coralCradlePickup();
                 CommandScheduler.getInstance().schedule(autoPickupCommand);
             }
         } else if (cradleCleared) {
-            pieceState = GamePieceState.EMPTY;
-        }
-
-        if (!arm.isHoldingItem()) {
-            if (pieceState == GamePieceState.CORAL_IN_ARM) {
-                pieceState = cradle ? GamePieceState.CORAL_IN_CRADLE : GamePieceState.EMPTY;
-                arm.setHoldingCoral(false);
-                activeMode = Mode.NONE;
-            } else if (pieceState == GamePieceState.ALGAE_IN_ARM) {
-                pieceState = cradle ? GamePieceState.CORAL_IN_CRADLE : GamePieceState.EMPTY;
-                arm.setHoldingAlgae(false);
-                activeMode = Mode.NONE;
+            if (arm.isHoldingItem()) {
+                pieceState = GamePieceState.CORAL_IN_ARM;
             }
         }
+
+//        if (!arm.isHoldingItem()) {
+//            if (pieceState == GamePieceState.CORAL_IN_ARM) {
+//                pieceState = cradle ? GamePieceState.CORAL_IN_CRADLE : GamePieceState.EMPTY;
+//                arm.setHoldingCoral(false);
+//                activeMode = Mode.NONE;
+//            } else if (pieceState == GamePieceState.ALGAE_IN_ARM) {
+//                pieceState = cradle ? GamePieceState.CORAL_IN_CRADLE : GamePieceState.EMPTY;
+//                arm.setHoldingAlgae(false);
+//                activeMode = Mode.NONE;
+//            }
+//        }
 
         logTelemetry();
     }
@@ -101,6 +107,14 @@ public class Superstructure extends SubsystemBase {
         SmartDashboard.putString("Superstructure/GamePieceState", pieceState.name());
         SmartDashboard.putString("Superstructure/Mode", activeMode.name());
         SmartDashboard.putString("Superstructure/Level", currentLevel.name());
+
+        // Logging current commands each subsystem is using
+        Command currentArmCommand = arm.getCurrentCommand();
+        if (currentArmCommand != null) {
+            SmartDashboard.putString("Superstructure/Commands/Arm", arm.getCurrentCommand().getName());
+        } else {
+            SmartDashboard.putString("Superstructure/Commands/Arm", "null");
+        }
     }
 
     public Command reverseCoral() {
@@ -136,7 +150,7 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command waitForIntake() {
-        return new WaitUntilCommand(indexer::hasCoral);
+        return new WaitUntilCommand(indexer::isCoralInCradle);
     }
 
     public Command funnelOut() {
@@ -148,7 +162,7 @@ public class Superstructure extends SubsystemBase {
     }
 
     public boolean hasGamePiece() {
-        return arm.isHoldingItem() || indexer.hasCoral();
+        return arm.isHoldingItem() || indexer.isCoralInCradle();
     }
 
     public Elevator getElevator() {
@@ -185,14 +199,13 @@ public class Superstructure extends SubsystemBase {
 
     public Command coralCradlePickup() {
         return Commands.sequence(
-//                Commands.waitUntil(indexer::isCoralInCradle),
                 Commands.runOnce(() -> {
                     arm.clearGamePieceFlags();
                     activeMode = Mode.NONE;
                 }),
                 new ParallelCommandGroup(
                         elevator.L1(),
-                        arm.getMoveToAngleCommand(ArmConstants.CORAL_HANDOFF_PREP_ANGLE)
+                        arm.moveCommand(ArmConstants.CORAL_HANDOFF_PREP_ANGLE)
                 ),
                 new ParallelDeadlineGroup(
                         new WaitCommand(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
@@ -203,24 +216,17 @@ public class Superstructure extends SubsystemBase {
                 ),
                 elevator.L1(),
                 Commands.runOnce(() -> {
-                    if (arm.hasItem()) {
+                    if (arm.isHoldingItem()) {
                         arm.holdItem();
                         arm.setHoldingCoral(true);
                         pieceState = GamePieceState.CORAL_IN_ARM;
                         activeMode = Mode.CORAL;
                         currentLevel = Level.L1;
-                    } else {
-                        arm.stopRollers();
-                        arm.clearGamePieceFlags();
-                        pieceState = indexer.isCoralInCradle()
-                                ? GamePieceState.CORAL_IN_CRADLE
-                                : GamePieceState.EMPTY;
-                        activeMode = Mode.NONE;
                     }
                 }),
                 new ParallelCommandGroup(
-                        elevator.L1(),
-                        arm.getMoveToAngleCommand(ArmConstants.CORAL_HANDOFF_PREP_ANGLE)
+                        elevator.stow(),
+                        arm.stowCommand()
                 )
         ).withName("CoralCradlePickup");
     }
@@ -235,8 +241,8 @@ public class Superstructure extends SubsystemBase {
                         Commands.waitUntil(arm::hasItem).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
                         new ParallelCommandGroup(
                                 elevator.L0(),
-                                arm.getMoveToAngleCommand(ArmConstants.ALGAE_GROUND_INTAKE_ANGLE),
-                                Commands.startEnd(arm::startIntake, arm::stopRollers, arm)
+                                arm.moveCommand(ArmConstants.ALGAE_GROUND_INTAKE_ANGLE),
+                                Commands.startEnd(arm::startIntake, arm::stopRollers)
                         )
                 ),
                 Commands.runOnce(() -> {
@@ -257,7 +263,7 @@ public class Superstructure extends SubsystemBase {
                 }),
                 new ParallelCommandGroup(
                         elevator.L0(),
-                        arm.getMoveToAngleCommand(ArmConstants.ALGAE_HOLD_ANGLE)
+                        arm.moveCommand(ArmConstants.ALGAE_HOLD_ANGLE)
                 )
         ).withName("AlgaeGroundPickup");
     }
@@ -275,8 +281,8 @@ public class Superstructure extends SubsystemBase {
                         Commands.waitUntil(arm::hasItem).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
                         new ParallelCommandGroup(
                                 elevator.getLevelCommand(level.elevatorLevel()),
-                                arm.getMoveToAngleCommand(ArmConstants.ALGAE_REEF_INTAKE_ANGLE),
-                                Commands.startEnd(arm::startIntake, arm::stopRollers, arm)
+                                arm.moveCommand(ArmConstants.ALGAE_REEF_INTAKE_ANGLE),
+                                Commands.startEnd(arm::startIntake, arm::stopRollers)
                         )
                 ),
                 Commands.runOnce(() -> {
@@ -296,8 +302,8 @@ public class Superstructure extends SubsystemBase {
                     }
                 }),
                 new ParallelCommandGroup(
-                        elevator.L0(),
-                        arm.getMoveToAngleCommand(ArmConstants.ALGAE_HOLD_ANGLE)
+                        elevator.stow(),
+                        arm.moveCommand(ArmConstants.ALGAE_HOLD_ANGLE)
                 )
         ).withName("AlgaeReefPickup" + level.name());
     }
@@ -307,7 +313,9 @@ public class Superstructure extends SubsystemBase {
             case CORAL_IN_ARM -> coralPrepare(level);
             case ALGAE_IN_ARM -> algaePrepare(level);
             case CORAL_IN_CRADLE, EMPTY -> {
-                if (level == Level.L2 || level == Level.L3) {
+                if (level == Level.L1)
+                    yield algaeGroundPickup();
+                else if (level == Level.L2 || level == Level.L3) {
                     yield algaeReefPickup(level);
                 }
                 yield Commands.none();
@@ -325,17 +333,17 @@ public class Superstructure extends SubsystemBase {
 
     public Command stow() {
         return new ParallelCommandGroup(
-                elevator.L0(),
+                elevator.stow(),
                 arm.stowCommand()
         ).withName("SuperstructureStow");
     }
 
     private Command coralPrepare(Level level) {
         Command armCommand = switch (level) {
-            case L4 -> arm.coralL4BeforeScoringCommand();
-            case L3 -> arm.coralL3BeforeScoringCommand();
-            case L2 -> arm.coralL2BeforeScoringCommand();
-            case L1 -> arm.coralL1BeforeScoringCommand();
+            case L4 -> arm.moveCommand(ArmConstants.CORAL_L4_BEFORE_SCORING);
+            case L3 -> arm.moveCommand(ArmConstants.CORAL_L3_BEFORE_SCORING);
+            case L2 -> arm.moveCommand(ArmConstants.CORAL_L2_BEFORE_SCORING);
+            case L1 -> arm.moveCommand(ArmConstants.CORAL_L1_BEFORE_SCORING);
         };
 
         return new ParallelCommandGroup(
@@ -347,16 +355,33 @@ public class Superstructure extends SubsystemBase {
         }));
     }
 
-    private Command coralScore(Level level) {
+    public Command coralScore(Level level) {
         Command armCommand = switch (level) {
-            case L4 -> arm.coralL4ScoringCommand();
-            case L3 -> arm.coralL3ScoringCommand();
-            case L2 -> arm.coralL2ScoringCommand();
-            case L1 -> arm.coralL1ScoringCommand();
+            case L4 -> arm.moveCommand(ArmConstants.CORAL_L4_SCORING);
+            case L3 -> arm.moveCommand(ArmConstants.CORAL_L3_SCORING);
+            case L2 -> arm.moveCommand(ArmConstants.CORAL_L2_SCORING);
+            case L1 -> arm.moveCommand(ArmConstants.CORAL_L1_SCORING);
+        };
+
+        Angle releaseAngle = switch (level) {
+            case L4 -> ArmConstants.CORAL_L4_SCORING;
+            case L3 -> ArmConstants.CORAL_L3_RELEASE;
+            case L2 -> ArmConstants.CORAL_L2_RELEASE;
+            case L1 -> ArmConstants.CORAL_L1_SCORING;
         };
 
         return Commands.sequence(
-                armCommand,
+                new ParallelCommandGroup(
+                        armCommand,
+                        Commands.sequence(
+                                new WaitUntilCommand(() -> arm.getAngle().isNear(releaseAngle, Degrees.of(3)))
+                                        .withTimeout(2.0),
+                                new ParallelCommandGroup(
+                                        new RunCommand(arm::startOutput),
+                                        this.run(() -> drivetrain.setChassisSpeeds(new ChassisSpeeds(-0.5, 0.0, 0.0)))
+                                ).withTimeout(1).finallyDo(() -> drivetrain.setChassisSpeeds(new ChassisSpeeds()))
+                        )
+                ),
                 Commands.runOnce(() -> {
                     arm.setHoldingCoral(false);
                     arm.stopRollers();
@@ -373,8 +398,8 @@ public class Superstructure extends SubsystemBase {
     private Command algaePrepare(Level level) {
         Command armCommand = switch (level) {
             case L4 -> arm.algaeBargeBeforeScoringCommand();
-            case L3, L2 -> arm.getMoveToAngleCommand(ArmConstants.ALGAE_REEF_INTAKE_ANGLE);
-            case L1 -> arm.getMoveToAngleCommand(ArmConstants.ALGAE_PROCESSOR_BEFORE_SCORING);
+            case L3, L2 -> arm.moveCommand(ArmConstants.ALGAE_REEF_INTAKE_ANGLE);
+            case L1 -> arm.moveCommand(ArmConstants.ALGAE_PROCESSOR_BEFORE_SCORING);
         };
 
         Command elevatorCommand = switch (level) {
@@ -425,21 +450,6 @@ public class Superstructure extends SubsystemBase {
     }
 
     // Legacy scoring helpers retained for compatibility with autonomous code.
-    public Command scoreCoralL4() {
-        return coralPrepare(Level.L4).andThen(coralScore(Level.L4));
-    }
-
-    public Command scoreCoralL3() {
-        return coralPrepare(Level.L3).andThen(coralScore(Level.L3));
-    }
-
-    public Command scoreCoralL2() {
-        return coralPrepare(Level.L2).andThen(coralScore(Level.L2));
-    }
-
-    public Command scoreCoralL1() {
-        return coralPrepare(Level.L1).andThen(coralScore(Level.L1));
-    }
 
     public Command scoreAlgaeBarge() {
         return algaePrepare(Level.L4).andThen(algaeScore(Level.L4));
@@ -484,7 +494,7 @@ public class Superstructure extends SubsystemBase {
                 Commands.runOnce(() -> {
                     activeMode = Mode.NONE;
                 }),
-                arm.getMoveToAngleCommand(angle)
+                arm.moveCommand(angle)
         ).withName("DebugArmTo" + angle);
     }
 
@@ -512,7 +522,7 @@ public class Superstructure extends SubsystemBase {
 
     // TODO: Remove after testing.
     public Command moveArmToAngle(Angle angle) {
-        return arm.getMoveToAngleCommand(angle);
+        return arm.moveCommand(angle);
     }
 
     public Command moveElevatorToHeight(Distance height) {

@@ -53,10 +53,10 @@ public final class Constants {
 
         public static final Distance HOME_POSITION = Meters.of(0.033);
         public static final Distance L0 = Meters.of(0.0); // INTAKE
-        public static final Distance L1 = Meters.of(0.2);
-        public static final Distance L2 = Meters.of(.43);
-        public static final Distance L3 = Meters.of(.84);
-        public static final Distance L4 = Meters.of(1.1);
+        public static final Distance L1 = Meters.of(0.22);
+        public static final Distance L2 = Meters.of(0.0);
+        public static final Distance L3 = Meters.of(0.36);
+        public static final Distance L4 = Meters.of(0.94);
         public static final Distance INTAKE = Meters.of(0);
 
         public static final Distance STOW_POSITION = L1;
@@ -99,7 +99,6 @@ public final class Constants {
         
         // Current thresholds for coral detection
         public static final Current CORAL_DETECTION_CURRENT = Amps.of(8.0);
-        public static final Current STALL_CURRENT = Amps.of(15.0);
         
         // Timeout for coral detection debouncing
         public static final double CORAL_DETECTION_TIMEOUT = 0.1; // seconds
@@ -176,7 +175,7 @@ public final class Constants {
 
     public static final class ArmConstants {
         // Intake angles
-        public static final Angle STOW_ANGLE = Degrees.of(-50);
+        public static final Angle STOW_ANGLE = Degrees.of(-80);
 
         public static final Angle CORAL_HANDOFF_PREP_ANGLE = Degrees.of(-88);
         public static final Angle CORAL_HANDOFF_PICKUP_ANGLE = Degrees.of(-90);
@@ -186,14 +185,16 @@ public final class Constants {
         public static final Angle ALGAE_REEF_INTAKE_ANGLE = Degrees.of(0);
 
         // Coral scoring angles
-        public static final Angle CORAL_L4_BEFORE_SCORING = Degrees.of(50);
-        public static final Angle CORAL_L4_SCORING = Degrees.of(15);
-        public static final Angle CORAL_L3_BEFORE_SCORING = Degrees.of(30);
-        public static final Angle CORAL_L3_SCORING = Degrees.of(5);
-        public static final Angle CORAL_L2_BEFORE_SCORING = Degrees.of(30);
-        public static final Angle CORAL_L2_SCORING = Degrees.of(5);
-        public static final Angle CORAL_L1_BEFORE_SCORING = Degrees.of(25);
-        public static final Angle CORAL_L1_SCORING = Degrees.of(5);
+        public static final Angle CORAL_L4_BEFORE_SCORING = Degrees.of(60);
+        public static final Angle CORAL_L4_SCORING = Degrees.of(0);
+        public static final Angle CORAL_L3_BEFORE_SCORING = Degrees.of(60);
+        public static final Angle CORAL_L3_RELEASE = Degrees.of(30);
+        public static final Angle CORAL_L3_SCORING = Degrees.of(0);
+        public static final Angle CORAL_L2_BEFORE_SCORING = Degrees.of(60);
+        public static final Angle CORAL_L2_RELEASE = Degrees.of(30);
+        public static final Angle CORAL_L2_SCORING = Degrees.of(0);
+        public static final Angle CORAL_L1_BEFORE_SCORING = Degrees.of(-30);
+        public static final Angle CORAL_L1_SCORING = Degrees.of(-30);
 
         // Algae scoring angles / poses
         public static final Angle ALGAE_HOLD_ANGLE = Degrees.of(0);
@@ -214,7 +215,7 @@ public final class Constants {
         public static final Voltage ROLLER_HOLD_SPEED = Volts.of(0.5); // Stalls to hold items
         
         // Item detection
-        public static final Current ITEM_DETECTION_CURRENT = Amps.of(6.0);
+        public static final Current ITEM_DETECTION_CURRENT = Amps.of(30.0);
         public static final Time INTAKE_TIMEOUT = Seconds.of(1.2);
 
         // Physical properties
@@ -238,7 +239,7 @@ public final class Constants {
             config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
             config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
             config.CurrentLimits.StatorCurrentLimitEnable = true;
-            config.CurrentLimits.StatorCurrentLimit = 50;
+            config.CurrentLimits.StatorCurrentLimit = 40;
             config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
             return config;
         }

@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -19,6 +20,8 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 // TODO: Remove after debug done.
+import java.util.Set;
+
 import static com.team9470.Constants.*;
 
 import static edu.wpi.first.units.Units.*;
@@ -40,7 +43,7 @@ public class RobotContainer {
     private final Mechanism2d mech = new Mechanism2d(5, 10);
 
     // Create the Superstructure instead of separate subsystems.
-    private final Superstructure superstructure = new Superstructure(mech);
+    private final Superstructure superstructure = new Superstructure(mech, drivetrain);
     private final AutoScoring autoScoring = new AutoScoring(drivetrain);
 
     // ----------------      VISION     --------------------
@@ -98,62 +101,49 @@ public class RobotContainer {
                 superstructure.stopIntakeGround()
             );
 
-        xbox.a().whileTrue(superstructure.coralCradlePickup());
-//        xbox.rightBumper().onTrue(superstructure.algaeGroundPickup());
+//        xbox.a().whileTrue(superstructure.coralCradlePickup());
+//
+//        xbox.b().whileTrue(superstructure.armIntake()).onFalse(superstructure.armStop());
 
-        /*
+        xbox.povDown()
+            .whileTrue(superstructure.coralCradlePickup());
+
+        xbox.povUp()
+            .whileTrue(superstructure.armIntake())
+                .onFalse(superstructure.armStop());
+
+        xbox.povRight()
+            .onTrue(superstructure.stow());
+
+        xbox.povLeft()
+            .whileTrue(superstructure.armOuttake())
+                .onFalse(superstructure.armStop());
+
+        // TODO: Implement auto-align.
         xbox.a()
-            .onTrue(
-                superstructure.moveArmToAngle(Degrees.of(90))
-            );
+            .onTrue(superstructure.prepareLevel(Superstructure.Level.L1));
 
         xbox.b()
-            .onTrue(
-                superstructure.moveArmToAngle(Degrees.of(-45))
-            );
+            .onTrue(superstructure.prepareLevel(Superstructure.Level.L2));
 
         xbox.x()
-            .onTrue(
-                superstructure.moveElevatorToHeight(ElevatorConstants.L1)
-            );
+            .onTrue(superstructure.prepareLevel(Superstructure.Level.L3));
 
         xbox.y()
-            .onTrue(
-                superstructure.moveElevatorToHeight(ElevatorConstants.L3)
-            );
-
-        xbox.leftTrigger()
-            .onTrue(
-                superstructure.moveElevatorToHeight(ElevatorConstants.L0)
-            );
-
-        xbox.leftBumper()
-            .whileTrue(
-                superstructure.armIntake()
-            ).onFalse(
-                superstructure.armStop()
-            );
+            .onTrue(superstructure.prepareLevel(Superstructure.Level.L4));
 
         xbox.rightBumper()
-            .whileTrue(
-                superstructure.armOuttake()
-            ).onFalse(
-                superstructure.armStop()
+            .onTrue(
+                    Commands.defer(
+                            () -> superstructure.coralScore(superstructure.currentLevel),
+                            Set.of(superstructure))
             );
 
+        // Reset field-centric orientation to zero at current orientation
+        xbox.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
-        */
+//        xbox.rightBumper().onTrue(superstructure.algaeGroundPickup());
 
-//        xbox.rightTrigger()
-//            .whileTrue(
-//                superstructure.intakeCoralGround()
-//            )
-
-
-//        xbox.b()
-//            .onTrue(
-//                superstructure.moveArmToAngle(ArmConstants.STOW_ANGLE)
-//            );
 
 
 //        xbox.a()

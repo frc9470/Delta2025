@@ -53,7 +53,7 @@ public class Intake extends SubsystemBase {
     private Time homingStartTime = Seconds.of(0);
 
     // --- Target angle ---
-    private Angle targetAngle = IntakeConstants.HOMING_ANGLE;
+    private Angle targetAngle = IntakeConstants.RETRACTED_ANGLE;
 
     // --- State tracking ---
     private boolean rollersRunning = false;
