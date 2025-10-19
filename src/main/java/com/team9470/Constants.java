@@ -186,22 +186,26 @@ public final class Constants {
 
         // Coral scoring angles
         public static final Angle CORAL_L4_BEFORE_SCORING = Degrees.of(60);
+        public static final Angle CORAL_L4_RELEASE = Degrees.of(10);
         public static final Angle CORAL_L4_SCORING = Degrees.of(0);
+
         public static final Angle CORAL_L3_BEFORE_SCORING = Degrees.of(60);
         public static final Angle CORAL_L3_RELEASE = Degrees.of(30);
         public static final Angle CORAL_L3_SCORING = Degrees.of(0);
+
         public static final Angle CORAL_L2_BEFORE_SCORING = Degrees.of(60);
         public static final Angle CORAL_L2_RELEASE = Degrees.of(30);
         public static final Angle CORAL_L2_SCORING = Degrees.of(0);
+
         public static final Angle CORAL_L1_BEFORE_SCORING = Degrees.of(-30);
         public static final Angle CORAL_L1_SCORING = Degrees.of(-30);
 
         // Algae scoring angles / poses
         public static final Angle ALGAE_HOLD_ANGLE = Degrees.of(0);
-        public static final Angle ALGAE_BARGE_BEFORE_SCORING = Degrees.of(80);
-        public static final Angle ALGAE_BARGE_SCORING = Degrees.of(60);
-        public static final Angle ALGAE_PROCESSOR_BEFORE_SCORING = Degrees.of(-30);
-        public static final Angle ALGAE_PROCESSOR_SCORING = Degrees.of(-45);
+        public static final Angle ALGAE_BARGE_BEFORE_SCORING = Degrees.of(110);
+        public static final Angle ALGAE_BARGE_SCORING = Degrees.of(80);
+        public static final Angle ALGAE_PROCESSOR_BEFORE_SCORING = Degrees.of(-45);
+        public static final Angle ALGAE_PROCESSOR_SCORING = Degrees.of(-40);
 
         // Homing
         public static final Angle HOMING_ANGLE = Degrees.of(-88.496888);

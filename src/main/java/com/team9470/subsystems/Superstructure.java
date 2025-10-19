@@ -75,9 +75,11 @@ public class Superstructure extends SubsystemBase {
         boolean coralInCradle = indexer.hasCoral();
         boolean newlyDetected = coralInCradle && pieceState == GamePieceState.EMPTY;
         boolean cradleCleared = !coralInCradle && pieceState == GamePieceState.CORAL_IN_CRADLE;
-        if(newlyDetected) {
+        if(coralInCradle) {
             pieceState = GamePieceState.CORAL_IN_CRADLE;
+            System.out.println("CORAL DETECTED");
             if (!arm.isHoldingItem() && autoPickupCommand == null) {
+                System.out.println("AUTO PICKING UP");
                 autoPickupCommand = coralCradlePickup();
                 CommandScheduler.getInstance().schedule(autoPickupCommand);
             }
@@ -182,7 +184,7 @@ public class Superstructure extends SubsystemBase {
                         arm.moveCommand(ArmConstants.CORAL_HANDOFF_PREP_ANGLE)
                 ),
                 new ParallelDeadlineGroup(
-                        new WaitCommand(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
+                        new WaitUntilCommand(arm::isHoldingItem).andThen(new WaitCommand(0.3)).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
                         new ParallelCommandGroup(
                                 elevator.getMoveToPositionCommand(ElevatorConstants.HOME_POSITION),
                                 Commands.startEnd(arm::startIntake, arm::stopRollers)
@@ -223,7 +225,7 @@ public class Superstructure extends SubsystemBase {
                     if (arm.isHoldingItem()) {
                         arm.holdItem();
                         arm.setHoldingAlgae(true);
-                        pieceState = GamePieceState.ALGAE_IN_ARM;
+//                        pieceState = GamePieceState.ALGAE_IN_ARM;
                         activeMode = Mode.ALGAE;
                         currentLevel = Level.L1;
                     } else {
@@ -263,7 +265,7 @@ public class Superstructure extends SubsystemBase {
                     if (arm.isHoldingItem()) {
                         arm.holdItem();
                         arm.setHoldingAlgae(true);
-                        pieceState = GamePieceState.ALGAE_IN_ARM;
+//                        pieceState = GamePieceState.ALGAE_IN_ARM;
                         activeMode = Mode.ALGAE;
                         currentLevel = level;
                     } else {
@@ -338,7 +340,7 @@ public class Superstructure extends SubsystemBase {
         };
 
         Angle releaseAngle = switch (level) {
-            case L4 -> ArmConstants.CORAL_L4_SCORING;
+            case L4 -> ArmConstants.CORAL_L4_RELEASE;
             case L3 -> ArmConstants.CORAL_L3_RELEASE;
             case L2 -> ArmConstants.CORAL_L2_RELEASE;
             case L1 -> ArmConstants.CORAL_L1_SCORING;
@@ -352,7 +354,7 @@ public class Superstructure extends SubsystemBase {
                                         .withTimeout(2.0),
                                 new ParallelCommandGroup(
                                         new RunCommand(arm::startOutput),
-                                        this.run(() -> drivetrain.setChassisSpeeds(new ChassisSpeeds(-0.5, 0.0, 0.0)))
+                                        this.run(() -> drivetrain.setChassisSpeeds(new ChassisSpeeds(-1, 0.0, 0.0)))
                                 ).withTimeout(1).finallyDo(() -> drivetrain.setChassisSpeeds(new ChassisSpeeds()))
                         )
                 ),

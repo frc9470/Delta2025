@@ -106,19 +106,21 @@ public class RobotContainer {
 //
 //        xbox.b().whileTrue(superstructure.armIntake()).onFalse(superstructure.armStop());
 
-        xbox.povDown()
-            .whileTrue(superstructure.coralCradlePickup());
-
         xbox.povUp()
-            .whileTrue(superstructure.armIntake())
-                .onFalse(superstructure.armStop());
+            .whileTrue(
+                    superstructure.getArm().getHomingCommand()
+                    .andThen(superstructure.getElevator().getHomingCommand()));
 
-        xbox.povRight()
+        xbox.povDown()
             .onTrue(superstructure.stow());
 
         xbox.povLeft()
             .whileTrue(superstructure.armOuttake())
                 .onFalse(superstructure.armStop());
+
+        xbox.povRight()
+            .whileTrue(superstructure.getIndexer().reverseCommand())
+                .onFalse(superstructure.getIndexer().stopCommand());
 
         // TODO: Implement auto-align.
         xbox.a()
@@ -138,44 +140,13 @@ public class RobotContainer {
                         .finallyDo(superstructure::stow));
 
         xbox.rightBumper()
-            .whileTrue(
+            .onTrue(
                     superstructure.scoreHeldPiece()
             );
 
         // Reset field-centric orientation to zero at current orientation
         xbox.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
-//        xbox.leftStick().onTrue(new InstantCommand(() -> MusicPlayer.getInstance().play()));
-
-//        xbox.rightBumper().onTrue(superstructure.algaeGroundPickup());
-
-
-
-//        xbox.a()
-//                .onTrue(new InstantCommand(() -> autoScoring.setLevel(1))
-//                        .andThen(superstructure.prepareLevel(Superstructure.Level.L1)))
-//                .onFalse(superstructure.scoreHeldPiece());
-//
-//        xbox.b()
-//                .onTrue(new InstantCommand(() -> autoScoring.setLevel(2))
-//                        .andThen(superstructure.prepareLevel(Superstructure.Level.L2)))
-//                .onFalse(superstructure.scoreHeldPiece());
-//
-//        xbox.x()
-//                .onTrue(new InstantCommand(() -> autoScoring.setLevel(3))
-//                        .andThen(superstructure.prepareLevel(Superstructure.Level.L3)))
-//                .onFalse(superstructure.scoreHeldPiece());
-//
-//        xbox.y()
-//                .onTrue(new InstantCommand(() -> autoScoring.setLevel(4))
-//                        .andThen(superstructure.prepareLevel(Superstructure.Level.L4)))
-//                .onFalse(superstructure.scoreHeldPiece());
-//
-//        xbox.leftTrigger().whileTrue(autoScoring.autoScore(superstructure));
-//
-//        xbox.rightStick().whileTrue(new InstantCommand(autoScoring::updateClosestReefPos));
-
-//        xbox.povRight().whileTrue(superstructure.scoreAndFunnel());
 
     }
 }
