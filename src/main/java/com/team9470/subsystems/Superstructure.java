@@ -121,14 +121,6 @@ public class Superstructure extends SubsystemBase {
         return indexer.reverseCommand();
     }
 
-    public Command algaeUp() {
-        return Commands.none();
-    }
-
-    public Command algaeDown() {
-        return Commands.none();
-    }
-
     public Command raise(int level) {
         return elevator.getLevelCommand(level);
     }
@@ -141,24 +133,8 @@ public class Superstructure extends SubsystemBase {
         return indexer.outputCommand();
     }
 
-    public Command scoreSlow() {
-        return indexer.outputCommand();
-    }
-
-    public Command triggerAlgaeHoming() {
-        return Commands.none();
-    }
-
     public Command waitForIntake() {
         return new WaitUntilCommand(indexer::hasCoral);
-    }
-
-    public Command funnelOut() {
-        return Commands.none();
-    }
-
-    public Command climberAction() {
-        return Commands.none();
     }
 
     public boolean hasGamePiece() {
