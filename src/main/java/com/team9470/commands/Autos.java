@@ -58,11 +58,70 @@ public class Autos extends SubsystemBase{
                 ));
     }
 
-    public Pose2d getSourcePose(boolean top){
+    public Pose2d getSourcePose(boolean top){ // REPLACE POSES IN TESTING
         return AllianceFlipUtil.apply(
-                top ? new Pose2d(1.52, 7.35, Rotation2d.fromDegrees(-54)) : new Pose2d(1.45, 0.73, Rotation2d.fromDegrees(54))
+                top ? new Pose2d(1.8302104473114014, 6.76573371887207, Rotation2d.fromDegrees(-54)) : new Pose2d(1.966275930404663, 1.436502456665039, Rotation2d.fromDegrees(54))
         );
     }
+
+    public enum LollipopSide{
+        TOP,
+        MIDDLE,
+        BOTTOM
+    }
+
+    public Pose2d getLollipopPose(LollipopSide side){ // REPLACE POSES IN TESTING
+        if(side==LollipopSide.TOP)
+                return AllianceFlipUtil.apply(new Pose2d(1.8302104473114014, 6.76573371887207, Rotation2d.fromDegrees(-54)));
+        else if(side==LollipopSide.MIDDLE)
+                return AllianceFlipUtil.apply(new Pose2d(1.8302104473114014, 4.0085768699646, Rotation2d.fromDegrees(-54)));
+        return AllianceFlipUtil.apply(new Pose2d(1.8302104473114014, 2.1849470138549805, Rotation2d.fromDegrees(-54)));
+    }
+
+        /**
+         * Creates a command that performs a sweeping motion through the specified waypoints.
+         * The robot will move through each position in sequence, maintaining the specified heading at each waypoint.
+         * 
+         * @return Command that executes the sweeping motion
+         */
+        public Command getSweepMotionCommand(boolean top) {
+        // Define different waypoints for top vs bottom source
+        Pose2d[] waypoints;
+        
+        if (top) {
+            waypoints = new Pose2d[]{
+                new Pose2d(2.8092904090881348, 7.4921770095825195, Rotation2d.fromDegrees(0)),
+                new Pose2d(2.0143749713897705, 7.4921770095825195, Rotation2d.fromDegrees(19.5)),
+                new Pose2d(1.2194594144821167, 7.164858818054199, Rotation2d.fromDegrees(36)),
+                new Pose2d(0.728482186794281, 6.627121925354004, Rotation2d.fromDegrees(55)),
+                new Pose2d(0.5648230910301208, 5.972485542297363, Rotation2d.fromDegrees(90))
+            };
+        } else {
+            waypoints = new Pose2d[]{
+                new Pose2d(2.8092904090881348, 0.7078229904174805, Rotation2d.fromDegrees(0)),
+                new Pose2d(2.0143749713897705, 0.7078229904174805, Rotation2d.fromDegrees(-19.5)),
+                new Pose2d(1.2194594144821167, 1.0351411819458008, Rotation2d.fromDegrees(-36)),
+                new Pose2d(0.728482186794281, 1.572878074645996, Rotation2d.fromDegrees(-55)),
+                new Pose2d(0.5648230910301208, 2.227514457702637, Rotation2d.fromDegrees(-90))
+            };
+        }
+
+        // Apply alliance flipping to all waypoints
+        for (int i = 0; i < waypoints.length; i++) {
+            waypoints[i] = AllianceFlipUtil.apply(waypoints[i]);
+        }
+
+        // Create a sequence of DriveToPose commands for each waypoint
+        Command[] driveCommands = new Command[waypoints.length];
+        for (int i = 0; i < waypoints.length; i++) {
+            final int index = i; // Capture for lambda
+            driveCommands[i] = new DriveToPose(() -> waypoints[index], swerve, true, 0.5);
+        }
+
+        // Return a sequential command that moves through all waypoints
+        return Commands.sequence(driveCommands);
+    }
+
 
     public Command alignToSource(boolean top) {
 
@@ -73,6 +132,15 @@ public class Autos extends SubsystemBase{
         return new DriveToPose(() -> getSourcePose(top), swerve, true, 10)
                 .andThen(superstructure.waitForIntake().deadlineFor(new DriveToPose(() -> getSourcePose(top), swerve, true, -1)));
 
+    }
+
+    public Command alignToLollipop(LollipopSide side){
+        return new DriveToPose(() -> getLollipopPose(side), swerve, true, 3).raceWith(superstructure.waitForIntake());
+    }
+
+    public Command alignToLollipopWait(LollipopSide side){
+        return new DriveToPose(() -> getLollipopPose(side), swerve, true, 10)
+                .andThen(superstructure.waitForIntake().deadlineFor(new DriveToPose(() -> getLollipopPose(side), swerve, true, -1)));
     }
 
     public Command scoreCoral() {
@@ -233,6 +301,118 @@ public class Autos extends SubsystemBase{
                                 .withDeadline(alignToSource(false)),
                         new WaitCommand(INTAKE_DELAY),
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(3, Superstructure.Level.L3), swerve)
+                )
+        );
+
+        return routine;
+    }
+
+    public AutoRoutine getFourCoralTopAutoAlign() {
+        AutoRoutine routine = autoFactory.newRoutine("4CTA");
+
+        routine.active().onTrue(
+                Commands.sequence(
+                        // First score - start position
+                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(9, Superstructure.Level.L4), swerve),
+                        elevator.L0()
+                                .withDeadline(alignToSourceWait(true)),
+
+                        // Second score - from source
+                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(10, Superstructure.Level.L4), swerve),
+                        elevator.L0()
+                                .withDeadline(alignToLollipopWait(LollipopSide.MIDDLE)),
+
+                        // Third score - from middle lollipop
+                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(11, Superstructure.Level.L4), swerve),
+                        elevator.L0()
+                                .withDeadline(alignToSourceWait(true)),
+
+                        // Fourth score - from source again
+                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(12, Superstructure.Level.L4), swerve)
+                )
+        );
+
+        return routine;
+    }
+
+    public AutoRoutine getFourCoralBottomAutoAlign() {
+        AutoRoutine routine = autoFactory.newRoutine("4CBA");
+
+        routine.active().onTrue(
+                Commands.sequence(
+                        // First score - start position
+                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(4, Superstructure.Level.L4), swerve),
+                        elevator.L0()
+                                .withDeadline(alignToSourceWait(false)),
+
+                        // Second score - from source
+                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(3, Superstructure.Level.L4), swerve),
+                        elevator.L0()
+                                .withDeadline(alignToLollipopWait(LollipopSide.MIDDLE)),
+
+                        // Third score - from middle lollipop
+                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(2, Superstructure.Level.L4), swerve),
+                        elevator.L0()
+                                .withDeadline(alignToSourceWait(false)),
+
+                        // Fourth score - from source again
+                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(1, Superstructure.Level.L4), swerve)
+                )
+        );
+
+        return routine;
+    }
+
+    public AutoRoutine getFourCoralTopAutoSweep() {
+        AutoRoutine routine = autoFactory.newRoutine("4CTS");
+
+        routine.active().onTrue(
+                Commands.sequence(
+                        // First score - start position
+                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(9, Superstructure.Level.L4), swerve),
+                        elevator.L0()
+                                .withDeadline(getSweepMotionCommand(true)),
+
+                        // Second score - from sweep intake
+                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(10, Superstructure.Level.L4), swerve),
+                        elevator.L0()
+                                .withDeadline(alignToLollipopWait(LollipopSide.MIDDLE)),
+
+                        // Third score - from middle lollipop
+                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(11, Superstructure.Level.L4), swerve),
+                        elevator.L0()
+                                .withDeadline(getSweepMotionCommand(true)),
+
+                        // Fourth score - from sweep intake again
+                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(12, Superstructure.Level.L4), swerve)
+                )
+        );
+
+        return routine;
+    }
+
+    public AutoRoutine getFourCoralBottomAutoSweep() {
+        AutoRoutine routine = autoFactory.newRoutine("4CBS");
+
+        routine.active().onTrue(
+                Commands.sequence(
+                        // First score - start position
+                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(4, Superstructure.Level.L4), swerve),
+                        elevator.L0()
+                                .withDeadline(getSweepMotionCommand(false)),
+
+                        // Second score - from sweep intake
+                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(3, Superstructure.Level.L4), swerve),
+                        elevator.L0()
+                                .withDeadline(alignToLollipopWait(LollipopSide.MIDDLE)),
+
+                        // Third score - from middle lollipop
+                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(2, Superstructure.Level.L4), swerve),
+                        elevator.L0()
+                                .withDeadline(getSweepMotionCommand(false)),
+
+                        // Fourth score - from sweep intake again
+                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(1, Superstructure.Level.L4), swerve)
                 )
         );
 
