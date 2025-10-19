@@ -14,14 +14,10 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 // TODO: Remove after debug done.
-import java.util.Set;
 
 import static com.team9470.Constants.*;
 
@@ -137,45 +133,18 @@ public class RobotContainer {
                 .toggleOnTrue(superstructure.prepareLevel(Superstructure.Level.L4)
                         .finallyDo(superstructure::stow));
 
+//        xbox.leftBumper()
+//            .onTrue(autoScoring.autoScore(superstructure, AutoScoring.Side.LEFT));
+//
+//        xbox.rightBumper()
+//            .onTrue(autoScoring.autoScore(superstructure, AutoScoring.Side.RIGHT));
+
+
         xbox.rightBumper()
-            .whileTrue(
-                    superstructure.scoreHeldPiece()
-            );
+                .whileTrue(
+                        superstructure.scoreHeldPiece()
+                );
 
-        // Reset field-centric orientation to zero at current orientation
-        xbox.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
-
-//        xbox.leftStick().onTrue(new InstantCommand(() -> MusicPlayer.getInstance().play()));
-
-//        xbox.rightBumper().onTrue(superstructure.algaeGroundPickup());
-
-
-
-//        xbox.a()
-//                .onTrue(new InstantCommand(() -> autoScoring.setLevel(1))
-//                        .andThen(superstructure.prepareLevel(Superstructure.Level.L1)))
-//                .onFalse(superstructure.scoreHeldPiece());
-//
-//        xbox.b()
-//                .onTrue(new InstantCommand(() -> autoScoring.setLevel(2))
-//                        .andThen(superstructure.prepareLevel(Superstructure.Level.L2)))
-//                .onFalse(superstructure.scoreHeldPiece());
-//
-//        xbox.x()
-//                .onTrue(new InstantCommand(() -> autoScoring.setLevel(3))
-//                        .andThen(superstructure.prepareLevel(Superstructure.Level.L3)))
-//                .onFalse(superstructure.scoreHeldPiece());
-//
-//        xbox.y()
-//                .onTrue(new InstantCommand(() -> autoScoring.setLevel(4))
-//                        .andThen(superstructure.prepareLevel(Superstructure.Level.L4)))
-//                .onFalse(superstructure.scoreHeldPiece());
-//
-//        xbox.leftTrigger().whileTrue(autoScoring.autoScore(superstructure));
-//
-//        xbox.rightStick().whileTrue(new InstantCommand(autoScoring::updateClosestReefPos));
-
-//        xbox.povRight().whileTrue(superstructure.scoreAndFunnel());
 
     }
 }
