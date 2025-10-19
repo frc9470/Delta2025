@@ -2,18 +2,15 @@ package com.team9470.commands;
 
 import com.team9470.Constants;
 import com.team9470.subsystems.Superstructure;
+import com.team9470.subsystems.Superstructure.Level;
 import com.team9470.subsystems.Swerve;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.DeferredCommand;
-import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
+import edu.wpi.first.wpilibj2.command.Commands;
 
 import java.util.Set;
-
-import static edu.wpi.first.units.Units.Meters;
 
 public class AutoScoring {
 
@@ -24,78 +21,94 @@ public class AutoScoring {
         this.drivetrain = drivetrain;
     }
 
-    public Command autoScore(Superstructure superstructure) {
-        return new DeferredCommand(() -> {
-            Command driveToScore = new DriveToPose(coralObjective::getScoringPose, drivetrain)
-                    .alongWith(
-                            new WaitUntilCommand(() -> closeEnough(coralObjective, Constants.DriverAssistConstants.RAISE_DISTANCE))
-                                    .andThen(superstructure.waitForIntake().asProxy())
-                                    .andThen(superstructure.raise(coralObjective.level).asProxy())
-                    );
-            System.out.println("Scoring with coralobjective: " + coralObjective);
-            return driveToScore;
-        }, Set.of(drivetrain)).asProxy().andThen(superstructure.score().asProxy());
-    }
-
     public static Command autoScore(Superstructure superstructure, CoralObjective objective, Swerve drivetrain) {
-        // First drive to the scoring position while raising the superstructure.
-        Command driveToScore = new DriveToPose(objective::getScoringPose, drivetrain)
-                .alongWith(
-                        new WaitUntilCommand(() -> closeEnough(objective, Constants.DriverAssistConstants.RAISE_DISTANCE))
-                                .andThen(superstructure.waitForIntake().asProxy())
-                                .andThen(superstructure.raise(objective.level))
-                );
-        if(objective.level == 1){
-            return driveToScore.andThen(superstructure.scoreSlow().asProxy());
-        } else return driveToScore.andThen(superstructure.score().asProxy());
+        return createAutoScoreCommand(superstructure, objective, drivetrain, false);
     }
 
     public static Command autoScoreWithTimeout(Superstructure superstructure, CoralObjective objective, Swerve drivetrain) {
-        // First drive to the scoring position while raising the superstructure.
-        Command driveToScore = new DriveToPose(objective::getScoringPose, drivetrain)
-                .alongWith(
-                        new WaitUntilCommand(() -> closeEnough(objective, Constants.DriverAssistConstants.RAISE_DISTANCE))
-                                .andThen(superstructure.raise(objective::level))
-                );
-        return driveToScore.andThen(superstructure.score().withTimeout(1).until(() -> !superstructure.hasGamePiece()).asProxy());
+        return createAutoScoreCommand(superstructure, objective, drivetrain, false);
     }
 
     public static Command autoScoreStraight(Superstructure superstructure, CoralObjective objective, Swerve drivetrain) {
-        // First drive to the scoring position while raising the superstructure.
-        Command driveToScore = new DriveToPose(objective::getScoringPose, drivetrain, true)
-                .alongWith(
-                        new WaitUntilCommand(() -> closeEnough(objective, Constants.DriverAssistConstants.RAISE_DISTANCE.times(2)))
-                                .andThen(superstructure.raise(objective::level))
-                );
-        return driveToScore.andThen(superstructure.score().withTimeout(1).until(() -> !superstructure.hasGamePiece()).asProxy());
+        return createAutoScoreCommand(superstructure, objective, drivetrain, true);
     }
 
-    public Command autoScoreNoDrive(Superstructure superstructure) {
-        return new DeferredCommand(() -> {
-            if(coralObjective.level == 1){
-                return superstructure.raise(coralObjective.level).andThen(superstructure.scoreSlow());
-            } else return superstructure.raise(coralObjective.level).andThen(superstructure.score());
-        }, Set.of());
+    public Command autoScore(Superstructure superstructure, Side side) {
+        return Commands.defer(() -> {
+            int branchId = findClosestBranch(side);
+            CoralObjective objective = new CoralObjective(branchId, superstructure.currentLevel);
+            coralObjective = objective;
+            SmartDashboard.putNumber("AutoScoring/Branch ID", branchId);
+            SmartDashboard.putString("AutoScoring/Level", objective.level().name());
+            return createAutoScoreCommand(superstructure, objective, drivetrain, false);
+        }, Set.of(drivetrain, superstructure));
     }
 
-    private Pose2d computeDriveBackPose(Pose2d scoringPose) {
-        // Drive backward 1 meter relative to the scoring pose.
-        Translation2d backOffset = new Translation2d(-.5, 0.0).rotateBy(scoringPose.getRotation());
-        return new Pose2d(scoringPose.getTranslation().plus(backOffset), scoringPose.getRotation());
+    public void updateClosestReefPos() {
+        setBranch(findClosestBranch());
     }
 
-    public Command driveBack(){
-        Pose2d scoringPose = coralObjective.getScoringPose();
-        Pose2d driveBackPose = computeDriveBackPose(scoringPose);
+    private int findClosestBranch() {
+        Pose2d[] reefPoses = Constants.DriverAssistConstants.getReefPositions();
+        Pose2d currentPose = drivetrain.getPose();
 
-        return new DriveToPose(() -> driveBackPose, drivetrain);
-
+        double shortestDistance = Double.MAX_VALUE;
+        int closestPoseId = coralObjective.branchId();
+        for (int i = 0; i < reefPoses.length; i++) {
+            Pose2d pose = reefPoses[i];
+            double distance = currentPose.getTranslation().getDistance(pose.getTranslation());
+            if (distance < shortestDistance) {
+                shortestDistance = distance;
+                closestPoseId = i;
+            }
+        }
+        return closestPoseId;
     }
 
-    private static boolean closeEnough(CoralObjective objective, Distance distance){
-        Pose2d scoringPose = objective.getScoringPose();
-        Pose2d currentPose = Swerve.getInstance().getPose();
-        return currentPose.getTranslation().getDistance(scoringPose.getTranslation()) < distance.in(Meters);
+    private int findClosestBranch(Side side) {
+        Pose2d[] reefPoses = Constants.DriverAssistConstants.getReefPositions();
+        Pose2d currentPose = drivetrain.getPose();
+
+        int closestFace = -1;
+        double shortestDistance = Double.MAX_VALUE;
+
+        for (int face = 0; face < reefPoses.length / 2; face++) {
+            Translation2d faceCenter = getFaceCenter(reefPoses, face);
+            double distance = currentPose.getTranslation().getDistance(faceCenter);
+            if (distance < shortestDistance) {
+                shortestDistance = distance;
+                closestFace = face;
+            }
+        }
+
+        if (closestFace < 0) {
+            return findClosestBranch();
+        }
+
+        int firstBranch = closestFace * 2;
+        int secondBranch = firstBranch + 1;
+
+        Translation2d faceCenter = getFaceCenter(reefPoses, closestFace);
+        Translation2d forward = new Translation2d(
+                reefPoses[firstBranch].getRotation().getCos(),
+                reefPoses[firstBranch].getRotation().getSin());
+
+        Translation2d firstOffset = reefPoses[firstBranch].getTranslation().minus(faceCenter);
+
+        double firstCross = forward.getX() * firstOffset.getY() - forward.getY() * firstOffset.getX();
+        boolean firstIsLeft = firstCross >= 0.0;
+
+        if (side == Side.LEFT) {
+            return firstIsLeft ? firstBranch : secondBranch;
+        }
+
+        return firstIsLeft ? secondBranch : firstBranch;
+    }
+
+    private Translation2d getFaceCenter(Pose2d[] reefPoses, int face) {
+        Translation2d first = reefPoses[face * 2].getTranslation();
+        Translation2d second = reefPoses[face * 2 + 1].getTranslation();
+        return new Translation2d((first.getX() + second.getX()) / 2.0, (first.getY() + second.getY()) / 2.0);
     }
 
     // Update the reef value used for automatic level selection.
@@ -106,36 +119,47 @@ public class AutoScoring {
     }
 
     public void setLevel(int level) {
-        coralObjective = coralObjective.updateLevel(level);
-        SmartDashboard.putString("AutoScoring/Level: ", "L" + level);
+        coralObjective = coralObjective.updateLevel(fromInt(level));
+        SmartDashboard.putString("AutoScoring/Level", coralObjective.level().name());
     }
 
-    public void updateClosestReefPos() {
-        Pose2d[] reefPoses = Constants.DriverAssistConstants.getReefPositions();
-        // Get the current robot pose at initialization.
-        Pose2d currentPose = Swerve.getInstance().getPose();
+    public void setLevel(Level level) {
+        coralObjective = coralObjective.updateLevel(level);
+        SmartDashboard.putString("AutoScoring/Level", level.name());
+    }
 
-        // Find the closest reef pose.
-        double shortestDistance = Double.MAX_VALUE;
-        int closestPoseId = -1;
-        for (int i = 0; i < 12; i++) {
-            Pose2d pose = reefPoses[i];
-            double distance = currentPose.getTranslation().getDistance(pose.getTranslation());
-            if (distance < shortestDistance) {
-                shortestDistance = distance;
-                closestPoseId = i;
-            }
-        }
-        setBranch(closestPoseId);
+    private static Level fromInt(int level) {
+        return switch (level) {
+            case 4 -> Level.L4;
+            case 3 -> Level.L3;
+            case 2 -> Level.L2;
+            default -> Level.L1;
+        };
+    }
 
+    private static Command createAutoScoreCommand(Superstructure superstructure, CoralObjective objective, Swerve drivetrain, boolean straight) {
+        Command drive = straight
+                ? new DriveToPose(objective::getScoringPose, drivetrain, true)
+                : new DriveToPose(objective::getScoringPose, drivetrain);
+
+        Command prepare = superstructure.prepareLevel(objective.level());
+
+        Command driveAndPrepare = Commands.deadline(drive, prepare);
+
+        return driveAndPrepare.andThen(superstructure.coralScore(objective.level()));
+    }
+
+    public enum Side {
+        LEFT,
+        RIGHT
     }
 
     // Starting facing the driver station, moving counterclockwise
-    public record CoralObjective(int branchId, int level){
-        public static final CoralObjective NONE = new CoralObjective(0, 0);
+    public record CoralObjective(int branchId, Level level){
+        public static final CoralObjective NONE = new CoralObjective(0, Level.L1);
 
         public Pose2d getScoringPose(){
-            if (level == 1) return Constants.DriverAssistConstants.getL1Pose(this);
+            if (level == Level.L1) return Constants.DriverAssistConstants.getL1Pose(this);
             return Constants.DriverAssistConstants.getReefPositions()[branchId];
         }
 
@@ -152,7 +176,7 @@ public class AutoScoring {
             return new CoralObjective(branchId, level);
         }
 
-        public CoralObjective updateLevel(int level){
+        public CoralObjective updateLevel(Level level){
             return new CoralObjective(branchId, level);
         }
     }
