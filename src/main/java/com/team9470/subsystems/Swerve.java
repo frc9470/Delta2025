@@ -371,7 +371,9 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     }
 
     public double[] getWheelRadiusCharacterizationPosition() {
-        return Arrays.stream(getModules()).mapToDouble((module) -> module.getPosition(true).distanceMeters/Units.inchesToMeters(2)).toArray();
+        return Arrays.stream(getModules())
+                .mapToDouble(module -> module.getPosition(true).distanceMeters)
+                .toArray();
     }
 
     public static Swerve getInstance(){
