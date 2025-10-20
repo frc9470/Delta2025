@@ -29,8 +29,8 @@ public class DriveToPose extends Command {
     TrapezoidProfile.Constraints constraints = new TrapezoidProfile.Constraints(TunerConstants.maxVelocity, TunerConstants.maxAcceleration);
     TrapezoidProfile.Constraints rotationConstraints = new TrapezoidProfile.Constraints(TunerConstants.maxAngularVelocity, TunerConstants.maxAngularAcceleration);
 
-    private final ProfiledPIDController pidControllerX = new ProfiledPIDController(7, 0, 0, constraints);
-    private final ProfiledPIDController pidControllerY = new ProfiledPIDController(7, 0, 0, constraints);
+    private final ProfiledPIDController pidControllerX = new ProfiledPIDController(5, 0, 0, constraints);
+    private final ProfiledPIDController pidControllerY = new ProfiledPIDController(5, 0, 0, constraints);
     private final ProfiledPIDController pidControllerOmega = new ProfiledPIDController(7, 0, 0, rotationConstraints);
 
 
@@ -96,7 +96,7 @@ public class DriveToPose extends Command {
         SmartDashboard.putNumber("DriveToPose/HeadingError", Math.abs(drivetrain.getPose().getRotation().minus(reefPose.getRotation()).getDegrees()));
         SmartDashboard.putBoolean("DriveToPose/TranslationAligned", drivetrain.getPose().getTranslation().getDistance(reefPose.getTranslation()) <= 0.015);
         SmartDashboard.putBoolean("DriveToPose/HeadingAligned", Math.abs(drivetrain.getPose().getRotation().minus(reefPose.getRotation()).getDegrees()) <= 1);
-        return drivetrain.getPose().getTranslation().getDistance(reefPose.getTranslation()) <= 0.015 * tolerance &&
+        return drivetrain.getPose().getTranslation().getDistance(reefPose.getTranslation()) <= 0.01 * tolerance &&
                 Math.abs(drivetrain.getPose().getRotation().minus(reefPose.getRotation()).getDegrees()) <= 1 * tolerance;
     }
 

@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import static com.team9470.Constants.ElevatorConstants.*;
@@ -62,7 +63,7 @@ public class Elevator extends SubsystemBase {
     private HomingState homingState = HomingState.HOMING;
 
     // Our "goal" position in meters
-    private Distance targetPosition = L0;
+    private Distance targetPosition = STOW_POSITION;
 
     // Keep track of time when homing started
     private Time homingStartTime = Seconds.of(0);
@@ -230,7 +231,7 @@ public class Elevator extends SubsystemBase {
 
     // Example: check if we might be stalling
     public boolean isStalling() {
-        return periodicIO.current.in(Amps) >= 10;
+        return periodicIO.current.in(Amps) >= 30;
     }
 
     // ------------------ Internal (Periodic) Methods ------------------
@@ -273,7 +274,7 @@ public class Elevator extends SubsystemBase {
                 boolean timeOut = periodicIO.timestamp
                         .minus(homingStartTime)
                         .gt(ElevatorConstants.HOMING_TIMEOUT);
-                if (L0.isNear(periodicIO.positionMeters, Meters.of(0.02)) && timeOut) {
+                if (targetPosition.isNear(periodicIO.positionMeters, Meters.of(0.02)) && timeOut) {
                     homingState = HomingState.HOMING;
                     homingStartTime = periodicIO.timestamp;
                 }
@@ -288,7 +289,7 @@ public class Elevator extends SubsystemBase {
 
                 if (velocityStalled && currentTooHigh) {
                     // We consider ourselves at the bottom => zero the sensor
-                    elevatorMotor.setPosition(0);
+                    elevatorMotor.setPosition(HOME_POSITION.in(Meters) * rotationsPerMeter);
                     homingState = HomingState.HOMED;
                 }
                 break;
@@ -371,17 +372,14 @@ public class Elevator extends SubsystemBase {
 
     // ------------------ External (Command) Methods ------------------
     public Command getHomingCommand() {
-        return new Command() {
-            @Override
-            public void execute() {
-                needsHoming = true;
-            }
-
-            @Override
-            public boolean isFinished() {
-                return homingState == HomingState.HOMED;
-            }
-        };
+        return this.runOnce(this::triggerHoming)
+                .andThen(Commands.waitUntil(() -> homingState == HomingState.HOMED));
+    }
+    /** Trigger homing sequence */
+    public void triggerHoming() {
+        needsHoming = true;
+        homingState = HomingState.HOMING;
+        homingStartTime = Seconds.of(Timer.getFPGATimestamp());;
     }
 
     public Command getMoveToPositionCommand(Distance position) {
