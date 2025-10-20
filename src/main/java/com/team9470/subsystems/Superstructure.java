@@ -219,7 +219,10 @@ public class Superstructure extends SubsystemBase {
                 )
         ).withName("AlgaeGroundPickup")
                 .finallyDo(interrupted -> {
-                    if (!arm.isHoldingAlgae()) {
+//                    if (!arm.isHoldingAlgae()) {
+//                        arm.stopRollers();
+//                    }
+                    if (!arm.isHoldingItem()) {
                         arm.stopRollers();
                     }
                 });
@@ -263,7 +266,10 @@ public class Superstructure extends SubsystemBase {
                 )
         ).withName("AlgaeReefPickup" + level.name())
                 .finallyDo(interrupted -> {
-                    if (!arm.isHoldingAlgae()) {
+//                    if (!arm.isHoldingAlgae()) {
+//                        arm.stopRollers();
+//                    }
+                    if (!arm.isHoldingItem()) {
                         arm.stopRollers();
                     }
                 });

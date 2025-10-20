@@ -10,7 +10,6 @@ import com.team9470.subsystems.Superstructure;
 import com.team9470.subsystems.Swerve;
 import com.team9470.subsystems.vision.Vision;
 import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -48,7 +47,6 @@ public class RobotContainer {
     private final AutoChooser autoChooser = new AutoChooser();
 
     CommandXboxController xbox = new CommandXboxController(0);
-    Joystick buttonBoard = new Joystick(1);
 
     public RobotContainer() {
         DataLogManager.start();
@@ -92,9 +90,6 @@ public class RobotContainer {
                 )
         );
 
-//        xbox.rightTrigger()
-//                .whileTrue(autoScoring.autoScore(superstructure)).onFalse(superstructure.getElevator().L0());
-        // TODO: Remove / verify.
         xbox.rightTrigger()
             .onTrue(
                 superstructure.stow()
@@ -102,10 +97,6 @@ public class RobotContainer {
             ).onFalse(
                 superstructure.stopIntakeGround()
             );
-
-//        xbox.a().whileTrue(superstructure.coralCradlePickup());
-//
-//        xbox.b().whileTrue(superstructure.armIntake()).onFalse(superstructure.armStop());
 
         xbox.povUp()
             .whileTrue(
