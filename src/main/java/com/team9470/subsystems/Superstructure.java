@@ -186,13 +186,15 @@ public class Superstructure extends SubsystemBase {
 
     public Command algaeGroundPickup() {
         return Commands.sequence(
-                Commands.runOnce(() -> heldPiece = PieceType.NONE),
+                Commands.runOnce(() -> {
+                    heldPiece = PieceType.NONE;
+                    arm.startIntake();
+                }),
                 new ParallelDeadlineGroup(
                         Commands.waitUntil(arm::isHoldingItem),
                         new ParallelCommandGroup(
                                 elevator.L1(),
-                                arm.moveCommand(ArmConstants.ALGAE_GROUND_INTAKE_ANGLE),
-                                Commands.startEnd(arm::startIntake, arm::stopRollers)
+                                arm.moveCommand(ArmConstants.ALGAE_GROUND_INTAKE_ANGLE)
                         )
                 ),
                 Commands.runOnce(() -> {
@@ -207,11 +209,20 @@ public class Superstructure extends SubsystemBase {
                         coralInCradle = indexer.hasCoral();
                     }
                 }),
-                new ParallelCommandGroup(
-                        elevator.L2(),
-                        arm.moveCommand(ArmConstants.ALGAE_HOLD_ANGLE)
+                Commands.either(
+                        new ParallelCommandGroup(
+                                elevator.L2(),
+                                arm.moveCommand(ArmConstants.ALGAE_HOLD_ANGLE)
+                        ),
+                        Commands.none(),
+                        () -> heldPiece == PieceType.ALGAE
                 )
-        ).withName("AlgaeGroundPickup");
+        ).withName("AlgaeGroundPickup")
+                .finallyDo(interrupted -> {
+                    if (!arm.isHoldingAlgae()) {
+                        arm.stopRollers();
+                    }
+                });
     }
 
     public Command algaeReefPickup(Level level) {
@@ -219,13 +230,15 @@ public class Superstructure extends SubsystemBase {
             return Commands.none();
         }
         return Commands.sequence(
-                Commands.runOnce(() -> heldPiece = PieceType.NONE),
+                Commands.runOnce(() -> {
+                    heldPiece = PieceType.NONE;
+                    arm.startIntake();
+                }),
                 new ParallelDeadlineGroup(
-                        Commands.waitUntil(arm::isHoldingItem).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
+                        Commands.waitUntil(arm::isHoldingItem),
                         new ParallelCommandGroup(
                                 elevator.getLevelCommand(level.elevatorLevel()),
-                                arm.moveCommand(ArmConstants.ALGAE_REEF_INTAKE_ANGLE),
-                                Commands.startEnd(arm::startIntake, arm::stopRollers)
+                                arm.moveCommand(ArmConstants.ALGAE_REEF_INTAKE_ANGLE)
                         )
                 ),
                 Commands.runOnce(() -> {
@@ -240,11 +253,20 @@ public class Superstructure extends SubsystemBase {
                         coralInCradle = indexer.hasCoral();
                     }
                 }),
-                new ParallelCommandGroup(
-                        elevator.stow(),
-                        arm.moveCommand(ArmConstants.ALGAE_HOLD_ANGLE)
+                Commands.either(
+                        new ParallelCommandGroup(
+                                elevator.stow(),
+                                arm.moveCommand(ArmConstants.ALGAE_HOLD_ANGLE)
+                        ),
+                        Commands.none(),
+                        () -> heldPiece == PieceType.ALGAE
                 )
-        ).withName("AlgaeReefPickup" + level.name());
+        ).withName("AlgaeReefPickup" + level.name())
+                .finallyDo(interrupted -> {
+                    if (!arm.isHoldingAlgae()) {
+                        arm.stopRollers();
+                    }
+                });
     }
 
     public Command prepareLevel(Level level) {
