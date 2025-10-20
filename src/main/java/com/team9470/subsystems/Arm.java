@@ -45,10 +45,6 @@ public class Arm extends SubsystemBase {
     // --- State tracking ---
     private boolean rollersRunning = false;
     
-    // Item type tracking
-    private boolean holdingCoral = false;
-    private boolean holdingAlgae = false;
-
     // --- Homing logic ---
     private enum HomingState {
         IDLE,
@@ -266,38 +262,6 @@ public class Arm extends SubsystemBase {
     /** Check if rollers are running */
     public boolean areRollersRunning() {
         return rollersRunning;
-    }
-
-    /** Set item type being held */
-    public void setHoldingCoral(boolean holding) {
-        holdingCoral = holding;
-        if (holding) {
-            holdingAlgae = false;
-        }
-    }
-
-    /** Set item type being held */
-    public void setHoldingAlgae(boolean holding) {
-        holdingAlgae = holding;
-        if (holding) {
-            holdingCoral = false;
-        }
-    }
-
-    /** Clears knowledge of held game pieces. */
-    public void clearGamePieceFlags() {
-        holdingCoral = false;
-        holdingAlgae = false;
-    }
-
-    /** Check if holding coral */
-    public boolean isHoldingCoral() {
-        return holdingCoral;
-    }
-
-    /** Check if holding algae */
-    public boolean isHoldingAlgae() {
-        return holdingAlgae;
     }
 
     /** Command to move the arm to the stow angle. */
