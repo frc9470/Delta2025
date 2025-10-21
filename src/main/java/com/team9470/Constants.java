@@ -222,6 +222,7 @@ public final class Constants {
 
         // Physical properties
         public static final double GEAR_RATIO = (44.0 / 16.0) * (44.0 / 18.0) * (60.0 / 12.0);
+        // TODO: Verify values.
         public static final Mass ARM_MASS = Kilogram.of(3.0);
         public static final Distance ARM_LENGTH = Meter.of(0.4);
         public static final Angle MIN_ANGLE = Degrees.of(-88.496888);
@@ -233,7 +234,7 @@ public final class Constants {
             config.MotionMagic.MotionMagicAcceleration = 20;
             config.MotionMagic.MotionMagicJerk = 0;
             config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
-            config.Slot0.kP = 20; // 25 WAYY too fast
+            config.Slot0.kP = 20;
             config.Slot0.kI = 0.0;
             config.Slot0.kD = 1.0;
             config.Slot0.kG = 0.57;
@@ -257,24 +258,6 @@ public final class Constants {
     }
 
     public static final class DriverAssistConstants {
-        // public static final Pose2d[] BLUE_REEF_POSITIONS = { // {x (m), y (m), angle (rad)}
-        //     new Pose2d(3.7454309463500977, 5.406795501708984, new Rotation2d(-1.0584074157409784)),
-        //     new Pose2d(2.9004666805267334, 4.025999546051025, new Rotation2d(0)),
-        //     new Pose2d(3.7042129039764404, 2.6452038288116455, new Rotation2d(1.0303770533621297)),
-        //     new Pose2d(5.270488739013672, 2.645203113555908, new Rotation2d(2.1375260206777438)),
-        //     new Pose2d(6.094844341278076, 4.025998592376709, new Rotation2d(3.141592653589793)),
-        //     new Pose2d(5.249879837036133, 5.40679407119751, new Rotation2d(-2.095592098445004)),
-        // };
-
-        // public static final Pose2d[] RED_REEF_POSITIONS = { // {x (m), y (m), angle (rad)}
-        //     new Pose2d(12.339337348937988, 5.406795501708984, new Rotation2d(-1.0584074157409784)),
-        //     new Pose2d(11.514982223510742, 4.025999546051025, new Rotation2d(0)),
-        //     new Pose2d(12.29811954498291, 2.6452038288116455, new Rotation2d(1.0303770533621297)),
-        //     new Pose2d(13.864395141601562, 2.645203113555908, new Rotation2d(2.1375260206777438)),
-        //     new Pose2d(14.647533416748047, 4.025998592376709, new Rotation2d(3.141592653589793)),
-        //     new Pose2d(13.823177337646484, 5.40679407119751, new Rotation2d(-2.095592098445004)),
-        // };
-
         public static final Distance centerX = Meters.of(4.47675);
         public static final Distance centerY = Meters.of(4.0259);
         public static final Distance radius = Meters.of(1.51);

@@ -16,21 +16,20 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 
-// TODO: Remove after debug done.
-
 import static edu.wpi.first.units.Units.*;
 
 public class RobotContainer {
     private final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
     private final double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
 
-    // Drivetrain and related commands remain unchanged
+    // ----- SWERVE + DRIVETRAIN -----
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
             .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1)
             .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage);
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
     public final Swerve drivetrain = TunerConstants.createDrivetrain();
+
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
     // ---------------- MECHANISM2D --------------------
@@ -75,10 +74,7 @@ public class RobotContainer {
         RobotModeTriggers.autonomous().whileTrue(autoChooser.selectedCommandScheduler());
     }
 
-    public void periodic(){
-        drivetrain.periodic();
-
-    }
+    public void periodic() { drivetrain.periodic(); }
 
     private void configureBindings() {
         drivetrain.registerTelemetry(logger::telemeterize);
@@ -91,6 +87,12 @@ public class RobotContainer {
                 )
         );
 
+        // ----- CONFIGURE CONTROLLER BINDINGS -----
+
+        // RESET SWERVE ORIENTATION.
+        xbox.leftStick().onTrue(new InstantCommand(drivetrain::seedFieldCentric));
+
+        // GROUND INTAKE. Also lifts arm, so coral does not jam when it hits the coral cradle.
         xbox.rightTrigger()
             .onTrue(
                 superstructure.stow()
@@ -99,49 +101,45 @@ public class RobotContainer {
                 superstructure.stopIntakeGround()
             );
 
-        xbox.povUp()
-            .whileTrue(
-                    superstructure.getArm().getHomingCommand()
-                            .andThen(superstructure.stow()))
-                .onFalse(superstructure.stow());
+        // Returns the arm to a stowed position.
+        xbox.povDown().onTrue(superstructure.stow());
 
-        xbox.povDown()
-            .onTrue(superstructure.stow());
-
-        xbox.povLeft()
-            .whileTrue(superstructure.armOuttake())
-                .onFalse(superstructure.armStop());
-
-        xbox.povRight()
-            .whileTrue(superstructure.reverseCommand())
-                .onFalse(superstructure.getIndexer().stopCommand().alongWith(superstructure.getIntake().stopRollersCommand()));
-
-        // TODO: Implement auto-align.
+        // ELEVATOR LEVELS.
         xbox.a()
             .onTrue(superstructure.prepareLevel(Superstructure.Level.L1));
 
         xbox.b()
-                .onTrue(superstructure.prepareLevel(Superstructure.Level.L2));
+            .onTrue(superstructure.prepareLevel(Superstructure.Level.L2));
 
         xbox.x()
-                .onTrue(superstructure.prepareLevel(Superstructure.Level.L3));
+            .onTrue(superstructure.prepareLevel(Superstructure.Level.L3));
 
         xbox.y()
-                .onTrue(superstructure.prepareLevel(Superstructure.Level.L4));
+            .onTrue(superstructure.prepareLevel(Superstructure.Level.L4));
 
+        // AUTO-ALIGN.
         xbox.leftBumper()
-                .whileTrue(autoScoring.autoAlign(superstructure, AutoScoring.Side.LEFT));
+            .whileTrue(autoScoring.autoAlign(superstructure, AutoScoring.Side.LEFT));
 
         xbox.leftTrigger()
-                .whileTrue(autoScoring.autoAlign(superstructure, AutoScoring.Side.RIGHT));
+            .whileTrue(autoScoring.autoAlign(superstructure, AutoScoring.Side.RIGHT));
 
+        // SCORING.
         xbox.rightBumper()
-                .onTrue(
-                        superstructure.scoreHeldPiece()
-                );
+            .onTrue(
+                    superstructure.scoreHeldPiece()
+            );
 
-        xbox.leftStick().onTrue(new InstantCommand(drivetrain::seedFieldCentric));
+        // ----- DEBUG CONTROLS. -----
 
+        // ARM OUTTAKE.
+        xbox.povLeft()
+                .whileTrue(superstructure.armOuttake())
+                .onFalse(superstructure.armStop());
 
+        // GROUND INTAKE OUTTAKE.
+        xbox.povRight()
+                .whileTrue(superstructure.reverseCommand())
+                .onFalse(superstructure.getIndexer().stopCommand().alongWith(superstructure.getIntake().stopRollersCommand()));
     }
 }
