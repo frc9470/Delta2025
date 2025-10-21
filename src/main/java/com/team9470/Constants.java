@@ -175,12 +175,10 @@ public final class Constants {
 
     public static final class ArmConstants {
         // Intake angles
-        public static final Angle STOW_ANGLE = Degrees.of(-80);
+        public static final Angle STOW_ANGLE = Degrees.of(-88);
 
         public static final Angle CORAL_HANDOFF_PREP_ANGLE = Degrees.of(-88);
-        public static final Angle CORAL_HANDOFF_PICKUP_ANGLE = Degrees.of(-90);
 
-        public static final Angle CORAL_INTAKE_ANGLE = Degrees.of(-20);
         public static final Angle ALGAE_GROUND_INTAKE_ANGLE = Degrees.of(-30);
         public static final Angle ALGAE_REEF_INTAKE_ANGLE = Degrees.of(0);
 
@@ -210,7 +208,7 @@ public final class Constants {
         // Homing
         public static final Angle HOMING_ANGLE = Degrees.of(-88.496888);
         public static final Current HOMING_THRESHOLD = Amps.of(20);
-        public static final Voltage HOMING_OUTPUT = Volts.of(-1.0);
+        public static final Voltage HOMING_OUTPUT = Volts.of(-2.0);
         public static final Time HOMING_TIMEOUT = Seconds.of(10);
 
         // Roller control
@@ -252,7 +250,7 @@ public final class Constants {
             TalonFXConfiguration config = new TalonFXConfiguration();
             config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
             config.CurrentLimits.StatorCurrentLimitEnable = true;
-            config.CurrentLimits.StatorCurrentLimit = 45;
+            config.CurrentLimits.StatorCurrentLimit = 50;
             config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
             return config;
         }

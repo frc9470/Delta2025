@@ -79,6 +79,7 @@ public class Superstructure extends SubsystemBase {
         if (coralInCradle && heldPiece == PieceType.NONE && !arm.isHoldingItem() && autoPickupCommand == null) {
             autoPickupCommand = coralCradlePickup();
             CommandScheduler.getInstance().schedule(autoPickupCommand);
+
         }
 
         logTelemetry();
@@ -87,22 +88,19 @@ public class Superstructure extends SubsystemBase {
     private void logTelemetry() {
         SmartDashboard.putString("Superstructure/HeldPiece", heldPiece.name());
         SmartDashboard.putBoolean("Superstructure/CoralInCradle", coralInCradle);
-        SmartDashboard.putString("Superstructure/PlannedScoringPiece", heldPiece.name());
         SmartDashboard.putString("Superstructure/Level", currentLevel.name());
 
-        // Logging current commands each subsystem is using
-        Command currentArmCommand = arm.getCurrentCommand();
-        if (currentArmCommand != null) {
-            SmartDashboard.putString("Superstructure/Commands/Arm", arm.getCurrentCommand().getName());
+        if (arm.getCurrentCommand() != null) {
+            SmartDashboard.putString("Superstructure/ARMCommand", arm.getCurrentCommand().getName());
         } else {
-            SmartDashboard.putString("Superstructure/Commands/Arm", "null");
+            SmartDashboard.putString("Superstructure/ARMCommand", "null");
         }
 
-        Command currentIntakeCommand = intake.getCurrentCommand();
-        if (currentIntakeCommand != null) {
-            SmartDashboard.putString("Superstructure/Commands/Intake", intake.getCurrentCommand().getName());
+        // Logging current commands each subsystem is using
+        if (autoPickupCommand != null) {
+            SmartDashboard.putString("Superstructure/AutoPickupCommand", autoPickupCommand.getName());
         } else {
-            SmartDashboard.putString("Superstructure/Commands/Intake", "null");
+            SmartDashboard.putString("Superstructure/AutoPickupCommand", "null");
         }
     }
 
@@ -165,7 +163,7 @@ public class Superstructure extends SubsystemBase {
                         new WaitUntilCommand(arm::isHoldingItem).andThen(new WaitCommand(0.4)).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
                         new ParallelCommandGroup(
                                 elevator.getMoveToPositionCommand(ElevatorConstants.HOME_POSITION),
-                                Commands.startEnd(arm::startIntake, arm::stopRollers)
+                                Commands.runOnce(arm::startIntake)
                         )
                 ),
                 elevator.L1(),
@@ -176,6 +174,7 @@ public class Superstructure extends SubsystemBase {
                         coralInCradle = indexer.hasCoral();
                         currentLevel = Level.L1;
                     }
+                    arm.stopRollers();
                 }),
                 new ParallelCommandGroup(
                         elevator.stow(),
@@ -185,6 +184,7 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command algaeGroundPickup() {
+        if(arm.isHoldingItem()) return Commands.none();
         return Commands.sequence(
                 Commands.runOnce(() -> {
                     heldPiece = PieceType.NONE;
@@ -193,7 +193,7 @@ public class Superstructure extends SubsystemBase {
                 new ParallelDeadlineGroup(
                         Commands.waitUntil(arm::isHoldingItem),
                         new ParallelCommandGroup(
-                                elevator.L1(),
+                                elevator.L2(),
                                 arm.moveCommand(ArmConstants.ALGAE_GROUND_INTAKE_ANGLE)
                         )
                 ),
@@ -219,14 +219,15 @@ public class Superstructure extends SubsystemBase {
                 )
         ).withName("AlgaeGroundPickup")
                 .finallyDo(interrupted -> {
-                    if (!arm.isHoldingAlgae()) {
+                    if (!arm.isHoldingItem()) {
                         arm.stopRollers();
+                        heldPiece = PieceType.NONE;
                     }
                 });
     }
 
     public Command algaeReefPickup(Level level) {
-        if (level != Level.L2 && level != Level.L3) {
+        if (level != Level.L2 && level != Level.L3 || arm.isHoldingItem()) {
             return Commands.none();
         }
         return Commands.sequence(
@@ -263,8 +264,9 @@ public class Superstructure extends SubsystemBase {
                 )
         ).withName("AlgaeReefPickup" + level.name())
                 .finallyDo(interrupted -> {
-                    if (!arm.isHoldingAlgae()) {
+                    if (!arm.isHoldingItem()) {
                         arm.stopRollers();
+                        heldPiece = PieceType.NONE;
                     }
                 });
     }
@@ -297,7 +299,11 @@ public class Superstructure extends SubsystemBase {
             case CORAL -> coralScore(currentLevel);
             case ALGAE -> algaeScore(currentLevel);
             default -> Commands.none();
-        }, Set.of(this));
+        }, Set.of(this)).finallyDo(() -> {
+            heldPiece = PieceType.NONE;
+            coralInCradle = indexer.hasCoral();
+            arm.stopRollers();
+        });
     }
 
     public Command stow() {
@@ -348,13 +354,9 @@ public class Superstructure extends SubsystemBase {
                                 ).withTimeout(1).finallyDo(() -> drivetrain.setChassisSpeeds(new ChassisSpeeds()))
                         )
                 ),
-                Commands.runOnce(() -> {
-                    arm.stopRollers();
-                    heldPiece = PieceType.NONE;
-                    coralInCradle = indexer.hasCoral();
-                }),
                 stow()
-        ).withName("CoralScore" + level.name());
+        )
+                .withName("CoralScore" + level.name());
     }
 
     private Command algaePrepare(Level level) {
@@ -396,11 +398,12 @@ public class Superstructure extends SubsystemBase {
     private Command finalizeAlgaeScore() {
         return Commands.sequence(
                 Commands.runOnce(() -> {
-                    arm.stopRollers();
-                    heldPiece = PieceType.NONE;
+                    if(!hasGamePiece()){
+                        heldPiece = PieceType.NONE;
+                    }
                     coralInCradle = indexer.hasCoral();
-                }),
-                stow()
+                    arm.stopRollers();
+                })
         );
     }
 
@@ -475,7 +478,7 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command armOuttake() {
-        return arm.runOuttakeCommand();
+        return arm.runOuttakeCommand().alongWith(this.runOnce(() -> heldPiece = PieceType.NONE));
     }
 
     public Command armStop() {

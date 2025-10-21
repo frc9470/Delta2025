@@ -22,6 +22,6 @@ public class Ports {
     /**
      * TODO: Set
      */
-    public static final int CRADLE_BREAK = 1;
-    public static final int INTAKE_BREAK = 2;
+    public static final int CRADLE_BREAK = 0;
+    public static final int INTAKE_BREAK = 1;
 }

@@ -179,6 +179,7 @@ public class Arm extends SubsystemBase {
                     pivotMotor.setPosition(ArmConstants.HOMING_ANGLE);
                     homingState = HomingState.HOMED;
                     needsHoming = false;
+                    stopRollers();
                 }
                 break;
             case HOMED:
@@ -267,7 +268,7 @@ public class Arm extends SubsystemBase {
 
     /** Command to move the arm to the stow angle. */
     public Command stowCommand() {
-        return moveCommand(ArmConstants.STOW_ANGLE);
+        return moveCommand(ArmConstants.STOW_ANGLE).withTimeout(.5).andThen(getHomingCommand());
     }
 
     /** Returns whether the arm is close to the stow position. */
@@ -282,7 +283,7 @@ public class Arm extends SubsystemBase {
      */
     public Command moveCommand(Angle angle) {
         return this.run(() -> setTargetAngle(angle))
-                .until(() -> getAngle().isNear(angle, Degrees.of(5)));
+                .until(() -> getAngle().isNear(angle, Degrees.of(7)));
     }
 
     /**
@@ -290,7 +291,7 @@ public class Arm extends SubsystemBase {
      */
     public Command getHomingCommand() {
         return this.runOnce(this::triggerHoming)
-            .andThen(Commands.waitUntil(() -> homingState == HomingState.HOMED));
+            .andThen(Commands.waitUntil(() -> homingState == HomingState.HOMED)).finallyDo(this::stopRollers);
     }
 
     // --- Algae Scoring Commands ---

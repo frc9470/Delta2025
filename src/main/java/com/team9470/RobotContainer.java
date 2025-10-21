@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 
@@ -110,7 +111,6 @@ public class RobotContainer {
         xbox.povUp()
             .whileTrue(
                     superstructure.getArm().getHomingCommand()
-                    .andThen(superstructure.getElevator().getHomingCommand())
                             .andThen(superstructure.stow()))
                 .onFalse(superstructure.stow());
 
@@ -145,9 +145,11 @@ public class RobotContainer {
                 .whileTrue(autoScoring.autoAlign(superstructure, AutoScoring.Side.RIGHT));
 
         xbox.rightBumper()
-                .whileTrue(
+                .onTrue(
                         superstructure.scoreHeldPiece()
                 );
+
+        xbox.leftStick().onTrue(new InstantCommand(drivetrain::seedFieldCentric));
 
 
     }
