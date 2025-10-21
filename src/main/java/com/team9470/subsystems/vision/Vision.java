@@ -13,8 +13,8 @@ import org.photonvision.simulation.VisionSystemSim;
 
 import java.util.List;
 
-import static com.team9470.Constants.VisionConstants.FRONT_LEFT_CAMERA_OFFSET;
-import static com.team9470.Constants.VisionConstants.FRONT_RIGHT_CAMERA_OFFSET;
+import static com.team9470.subsystems.vision.VisionConstants.FRONT_LEFT_CAMERA_OFFSET;
+import static com.team9470.subsystems.vision.VisionConstants.FRONT_RIGHT_CAMERA_OFFSET;
 
 public class Vision extends SubsystemBase {
     private static Vision instance;

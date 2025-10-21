@@ -1,7 +1,11 @@
 package com.team9470.subsystems;
 
-import com.team9470.Constants.ElevatorConstants;
-import com.team9470.Constants.ArmConstants;
+import com.team9470.subsystems.arm.Arm;
+import com.team9470.subsystems.arm.ArmConstants;
+import com.team9470.subsystems.elevator.Elevator;
+import com.team9470.subsystems.elevator.ElevatorConstants;
+import com.team9470.subsystems.indexer.Indexer;
+import com.team9470.subsystems.intake.Intake;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;

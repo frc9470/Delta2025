@@ -1,4 +1,4 @@
-package com.team9470.subsystems;
+package com.team9470.subsystems.elevator;
 
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
@@ -8,8 +8,7 @@ import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 import com.team254.lib.drivers.TalonFXFactory;
 import com.team254.lib.drivers.TalonUtil;
-import com.team9470.Constants;
-import com.team9470.Constants.ElevatorConstants;
+import com.team9470.subsystems.MusicPlayer;
 import com.team9470.Ports;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.*;
@@ -26,7 +25,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import static com.team9470.Constants.ElevatorConstants.*;
+import static com.team9470.subsystems.elevator.ElevatorConstants.*;
 import static edu.wpi.first.units.Units.*;
 
 /**
@@ -89,13 +88,13 @@ public class Elevator extends SubsystemBase {
     private final ElevatorSim elevatorSim =
         new ElevatorSim(
             DCMotor.getKrakenX60Foc(2),
-            Constants.ElevatorConstants.GEAR_RATIO,
-            Constants.ElevatorConstants.MASS,
-            Constants.ElevatorConstants.DRUM_RADIUS,
-            Constants.ElevatorConstants.HOME_POSITION.in(Meter),
-            Constants.ElevatorConstants.L4.in(Meter),
+            ElevatorConstants.GEAR_RATIO,
+            ElevatorConstants.MASS,
+            ElevatorConstants.DRUM_RADIUS,
+            ElevatorConstants.HOME_POSITION.in(Meter),
+            ElevatorConstants.L4.in(Meter),
             true,
-            Constants.ElevatorConstants.HOME_POSITION.in(Meter),
+            ElevatorConstants.HOME_POSITION.in(Meter),
             0.01, 0.0
         );
 
