@@ -5,6 +5,7 @@ import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
@@ -30,6 +31,10 @@ public final class ElevatorConstants {
     public static final double GEAR_RATIO = 52.0 / 11.0;
     public static final double MASS = 3.46;
     public static final double DRUM_RADIUS = DIST_PER_ROTATION.in(Meter) / (2 * Math.PI);
+
+    // Arm safety
+    public static final Angle ARM_MIN_ANGLE_FOR_FULL_LOWERING = Units.Degrees.of(-50);
+    public static final Angle ARM_STRAIGHT_DOWN_TOLERANCE = Units.Degrees.of(5);
 
     // Motion config
     public static final LinearVelocity CRUISE_VELOCITY = Units.MetersPerSecond.of(3);
