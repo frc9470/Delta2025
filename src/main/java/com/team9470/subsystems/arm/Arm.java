@@ -19,13 +19,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static edu.wpi.first.units.Units.*;
 
 /**
- * Arm subsystem for handling both coral and algae intake and scoring in the 2025 FRC Reefscape game.
+ * Arm subsystem for scoring/intaking algae and coral in the 2025 FRC REEFSCAPE game.
  * Features motion magic control for precise positioning and roller control for item manipulation.
- * Automatically detects items via current monitoring and maintains hold pressure.
+ * Automatically detects items via current monitoring and appropriately maintains holding force.
  */
 public class Arm extends SubsystemBase {
     // --- Hardware ---
-    private final TalonFX pivotMotor = TalonFXFactory.createDefaultTalon(Ports.ARM_ANGLE);
+    private final TalonFX pivotMotor = TalonFXFactory.createDefaultTalon(Ports.ARM_PIVOT);
     private final TalonFX rollerMotor = TalonFXFactory.createDefaultTalon(Ports.ARM_ROLLERS);
 
     // --- Control objects ---

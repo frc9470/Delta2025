@@ -13,7 +13,7 @@ public class Ports {
     public static final CanDeviceId INDEXER_1 = new CanDeviceId(15, "rio");
     public static final CanDeviceId INDEXER_2 = new CanDeviceId(16, "rio");
 
-    public static final CanDeviceId ARM_ANGLE = new CanDeviceId(19, "rio"); // 19
+    public static final CanDeviceId ARM_PIVOT = new CanDeviceId(19, "rio"); // 19
     public static final CanDeviceId ARM_ROLLERS = new CanDeviceId(20, "rio"); // 20
 
     public static final CanDeviceId INTAKE_ARM = new CanDeviceId(14, "rio");
