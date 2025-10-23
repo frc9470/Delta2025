@@ -1,6 +1,6 @@
 package com.team9470.commands;
 
-import com.team9470.Constants;
+import com.team9470.constants.DriverAssistConstants;
 import com.team9470.subsystems.Superstructure;
 import com.team9470.subsystems.Superstructure.Level;
 import com.team9470.subsystems.Swerve;
@@ -70,7 +70,7 @@ public class AutoScoring {
     }
 
     private int findClosestBranch() {
-        Pose2d[] reefPoses = Constants.DriverAssistConstants.getReefPositions();
+        Pose2d[] reefPoses = DriverAssistConstants.getReefPositions();
         Pose2d currentPose = drivetrain.getPose();
 
         double shortestDistance = Double.MAX_VALUE;
@@ -87,7 +87,7 @@ public class AutoScoring {
     }
 
     private int findClosestBranch(Side side) {
-        Pose2d[] reefPoses = Constants.DriverAssistConstants.getReefPositions();
+        Pose2d[] reefPoses = DriverAssistConstants.getReefPositions();
         Pose2d currentPose = drivetrain.getPose();
 
         int closestFace = -1;
@@ -186,7 +186,7 @@ public class AutoScoring {
         public static final CoralObjective NONE = new CoralObjective(0, Level.L1);
 
         public Pose2d getScoringPose(){
-            return Constants.DriverAssistConstants.getReefPositions()[branchId];
+            return DriverAssistConstants.getReefPositions()[branchId];
         }
 
         public int getFace(){

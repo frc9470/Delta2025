@@ -1,13 +1,13 @@
-package com.team9470.subsystems;
+package com.team9470.subsystems.indexer;
 
-import static com.team9470.Constants.IndexerConstants.CORAL_DETECTION_CURRENT;
+import static com.team9470.subsystems.indexer.IndexerConstants.CORAL_DETECTION_CURRENT;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.team254.lib.drivers.TalonFXFactory;
 import com.team254.lib.drivers.TalonUtil;
-import com.team9470.Constants.IndexerConstants;
+import com.team9470.subsystems.MusicPlayer;
 import com.team9470.Ports;
 
 import edu.wpi.first.units.measure.Current;

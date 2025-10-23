@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
-import static com.team9470.Constants.Global.disableHAL;
+import static com.team9470.constants.GlobalConstants.disableHAL;
 
 /**
  * Contains various field dimensions and useful reference points. All units are in meters and poses
