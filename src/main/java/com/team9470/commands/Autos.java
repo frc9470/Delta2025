@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 
 import static edu.wpi.first.units.Units.Degrees;
@@ -186,8 +187,11 @@ public class Autos extends SubsystemBase{
         AutoRoutine routine = autoFactory.newRoutine("1CMA");
 
         routine.active().onTrue(
-                AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(7, Superstructure.Level.L4), swerve)
-                        .andThen(elevator.L0())
+                Commands.sequence(
+                        new WaitUntilCommand(superstructure::hasCoralInArm),
+                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(7, Superstructure.Level.L4), swerve)
+                )
+
         );
 
         return routine;
@@ -370,12 +374,19 @@ public class Autos extends SubsystemBase{
         routine.active().onTrue(
                 Commands.sequence(
                         // First score - start position
-                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(9, Superstructure.Level.L4), swerve),
+                        Commands.sequence(
+                                new WaitUntilCommand(superstructure::hasCoralInArm),
+                                AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(9, Superstructure.Level.L4), swerve)
+                        ),
                         superstructure.stow()
                                 .withDeadline(getSweepMotionCommand(true)),
 
                         // Second score - from sweep intake
-                        AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(10, Superstructure.Level.L4), swerve),
+
+                        Commands.sequence(
+                                new WaitUntilCommand(superstructure::hasCoralInArm),
+                            AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(10, Superstructure.Level.L4), swerve)
+                        ),
                         superstructure.stow()
                                 .withDeadline(alignToLollipopWait(LollipopSide.MIDDLE)),
 

@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 
 import java.util.Set;
 
@@ -163,11 +164,11 @@ public class AutoScoring {
                 ? new DriveToPose(objective::getScoringPose, drivetrain, true)
                 : new DriveToPose(objective::getScoringPose, drivetrain);
 
-        Command prepare = superstructure.prepareLevel(objective.level());
+        Command prepare = superstructure.coralPrepare(objective.level());
 
         Command driveAndPrepare = Commands.deadline(drive, prepare);
 
-        return driveAndPrepare.andThen(superstructure.coralScore(objective.level()));
+        return driveAndPrepare.andThen(new InstantCommand(() -> SmartDashboard.putBoolean("AUTO/DRIVE FINISHED", true))).andThen(superstructure.coralScore(objective.level()).withTimeout(1.5));
     }
 
     private static Command createAutoAlignCommand(CoralObjective objective, Swerve drivetrain, boolean straight) {

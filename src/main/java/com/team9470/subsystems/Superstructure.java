@@ -170,7 +170,7 @@ public class Superstructure extends SubsystemBase {
                                 Commands.runOnce(arm::startIntake)
                         )
                 ),
-                elevator.L1(),
+                stow(),
                 Commands.runOnce(() -> {
                     if (arm.isHoldingItem()) {
                         arm.holdItem();
@@ -179,12 +179,9 @@ public class Superstructure extends SubsystemBase {
                         currentLevel = Level.L1;
                     }
                     arm.stopRollers();
-                }),
-                new ParallelCommandGroup(
-                        elevator.stow(),
-                        arm.stowCommand()
-                )
-        ).withName("CoralCradlePickup");
+                })
+        ).withName("CoralCradlePickup")
+                .finallyDo(() -> heldPiece = PieceType.CORAL);
     }
 
     public Command algaeGroundPickup() {
@@ -195,7 +192,7 @@ public class Superstructure extends SubsystemBase {
                     arm.startIntake();
                 }),
                 new ParallelDeadlineGroup(
-                        Commands.waitUntil(arm::isHoldingItem),
+                        Commands.waitUntil(arm::isHoldingItem).andThen(new WaitCommand(0.4)),
                         new ParallelCommandGroup(
                                 elevator.L2(),
                                 arm.moveCommand(ArmConstants.ALGAE_GROUND_INTAKE_ANGLE)
@@ -318,7 +315,7 @@ public class Superstructure extends SubsystemBase {
         ).withName("SuperstructureStow");
     }
 
-    private Command coralPrepare(Level level) {
+    public Command coralPrepare(Level level) {
         Command armCommand = switch (level) {
             case L4 -> arm.moveCommand(ArmConstants.CORAL_L4_BEFORE_SCORING);
             case L3 -> arm.moveCommand(ArmConstants.CORAL_L3_BEFORE_SCORING);
@@ -360,6 +357,7 @@ public class Superstructure extends SubsystemBase {
                                 ).withTimeout(.5).finallyDo(() -> drivetrain.setChassisSpeeds(new ChassisSpeeds()))
                         )
                 ),
+                        new InstantCommand(() -> SmartDashboard.putBoolean("AUTO/FINISH AUTOSCORE", true)),
                 stow()
         )
                 .withName("CoralScore" + level.name());
@@ -373,10 +371,10 @@ public class Superstructure extends SubsystemBase {
         };
 
         Command elevatorCommand = switch (level) {
-            case L4 -> elevator.L4();
-            case L3 -> elevator.L3();
-            case L2 -> elevator.L2();
-            case L1 -> elevator.L1();
+            case L4 -> elevator.AL4();
+            case L3 -> elevator.AL3();
+            case L2 -> elevator.AL2();
+            case L1 -> elevator.AL1();
         };
 
         return new ParallelCommandGroup(
@@ -388,12 +386,12 @@ public class Superstructure extends SubsystemBase {
     private Command algaeScore(Level level) {
         return switch (level) {
             case L4 -> Commands.sequence(
-                    elevator.L4(),
+                    elevator.AL4(),
                     arm.algaeBargeScoringCommand(),
                     finalizeAlgaeScore()
             ).withName("AlgaeScoreBarge");
             case L1 -> Commands.sequence(
-                    elevator.L0(),
+                    elevator.AL1(),
                     arm.algaeProcessorScoringCommand(),
                     finalizeAlgaeScore()
             ).withName("AlgaeScoreProcessor");
@@ -404,7 +402,7 @@ public class Superstructure extends SubsystemBase {
     private Command finalizeAlgaeScore() {
         return Commands.sequence(
                 Commands.runOnce(() -> {
-                    if(!hasGamePiece()){
+                    if (!hasGamePiece()) {
                         heldPiece = PieceType.NONE;
                     }
                     coralInCradle = indexer.hasCoral();
@@ -412,17 +410,6 @@ public class Superstructure extends SubsystemBase {
                 })
         );
     }
-
-    // Legacy scoring helpers retained for compatibility with autonomous code.
-
-    public Command scoreAlgaeBarge() {
-        return algaePrepare(Level.L4).andThen(algaeScore(Level.L4));
-    }
-
-    public Command scoreAlgaeProcessor() {
-        return algaePrepare(Level.L1).andThen(algaeScore(Level.L1));
-    }
-
 
     // TODO: Remove after debugging.
     public Command intakeCoralGround() {

@@ -23,7 +23,7 @@ public final class ArmConstants {
 
     public static final Angle CORAL_HANDOFF_PREP_ANGLE = Units.Degrees.of(-88);
 
-    public static final Angle ALGAE_GROUND_INTAKE_ANGLE = Units.Degrees.of(-40);
+    public static final Angle ALGAE_GROUND_INTAKE_ANGLE = Units.Degrees.of(-30);
     public static final Angle ALGAE_REEF_INTAKE_ANGLE = Units.Degrees.of(0);
 
     // Coral scoring angles
@@ -37,15 +37,15 @@ public final class ArmConstants {
 
     public static final Angle CORAL_L2_BEFORE_SCORING = Units.Degrees.of(60);
     public static final Angle CORAL_L2_RELEASE = Units.Degrees.of(30);
-    public static final Angle CORAL_L2_SCORING = Units.Degrees.of(20);
+    public static final Angle CORAL_L2_SCORING = Units.Degrees.of(10);
 
     public static final Angle CORAL_L1_BEFORE_SCORING = Units.Degrees.of(-30);
     public static final Angle CORAL_L1_SCORING = Units.Degrees.of(-30);
 
     // Algae scoring angles / poses
     public static final Angle ALGAE_HOLD_ANGLE = Units.Degrees.of(80);
-    public static final Angle ALGAE_BARGE_BEFORE_SCORING = Units.Degrees.of(110);
-    public static final Angle ALGAE_BARGE_SCORING = Units.Degrees.of(80);
+    public static final Angle ALGAE_BARGE_BEFORE_SCORING = Units.Degrees.of(70);
+    public static final Angle ALGAE_BARGE_SCORING = Units.Degrees.of(70);
     public static final Angle ALGAE_PROCESSOR_BEFORE_SCORING = Units.Degrees.of(-45);
     public static final Angle ALGAE_PROCESSOR_SCORING = Units.Degrees.of(-40);
 

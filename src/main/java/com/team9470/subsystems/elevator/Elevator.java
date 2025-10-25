@@ -450,7 +450,7 @@ public class Elevator extends SubsystemBase {
     }
 
     public Command AL4(){
-        return getMoveToPositionCommand(ElevatorConstants.L4);
+        return getMoveToPositionCommand(ElevatorConstants.ALGAE_L4);
     }
     public Command intake(){
         return getMoveToPositionCommand(ElevatorConstants.INTAKE);
