@@ -57,7 +57,7 @@ public final class ArmConstants {
 
     // Roller control
     public static final Voltage ROLLER_INTAKE_SPEED = Units.Volts.of(6.0);
-    public static final Voltage ROLLER_OUTPUT_SPEED = Units.Volts.of(-6.0);
+    public static final Voltage ROLLER_OUTPUT_SPEED = Units.Volts.of(-8.0);
     public static final Voltage ROLLER_HOLD_SPEED = Units.Volts.of(2.0); // Stalls to hold items
 
     // Item detection

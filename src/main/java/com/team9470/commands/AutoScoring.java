@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 
 import java.util.Set;
 
@@ -22,27 +23,9 @@ public class AutoScoring {
         this.drivetrain = drivetrain;
     }
 
+
     public static Command autoScore(Superstructure superstructure, CoralObjective objective, Swerve drivetrain) {
-        return createAutoScoreCommand(superstructure, objective, drivetrain, false);
-    }
-
-    public static Command autoScoreWithTimeout(Superstructure superstructure, CoralObjective objective, Swerve drivetrain) {
-        return createAutoScoreCommand(superstructure, objective, drivetrain, false);
-    }
-
-    public static Command autoScoreStraight(Superstructure superstructure, CoralObjective objective, Swerve drivetrain) {
-        return createAutoScoreCommand(superstructure, objective, drivetrain, true);
-    }
-
-    public Command autoScore(Superstructure superstructure, Side side) {
-        return Commands.defer(() -> {
-            int branchId = findClosestBranch(side);
-            CoralObjective objective = new CoralObjective(branchId, superstructure.currentLevel);
-            coralObjective = objective;
-            SmartDashboard.putNumber("AutoScoring/Branch ID", branchId);
-            SmartDashboard.putString("AutoScoring/Level", objective.level().name());
-            return createAutoScoreCommand(superstructure, objective, drivetrain, false);
-        }, Set.of(drivetrain, superstructure));
+        return new WaitUntilCommand(superstructure::hasCoralInArm).andThen(createAutoScoreCommand(superstructure, objective, drivetrain, false));
     }
 
     public Command autoAlign(Superstructure superstructure) {
@@ -166,7 +149,7 @@ public class AutoScoring {
 
         Command prepare = superstructure.coralPrepare(objective.level());
 
-        Command driveAndPrepare = Commands.deadline(drive, prepare);
+        Command driveAndPrepare = Commands.parallel(drive, new WaitUntilCommand(superstructure::hasCoralInArm).andThen(prepare));
 
         return driveAndPrepare.andThen(new InstantCommand(() -> SmartDashboard.putBoolean("AUTO/DRIVE FINISHED", true))).andThen(superstructure.coralScore(objective.level()).withTimeout(1.5));
     }
