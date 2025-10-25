@@ -74,10 +74,10 @@ public class Autos extends SubsystemBase{
 
     public Pose2d getLollipopPose(LollipopSide side){ // REPLACE POSES IN TESTING
         if(side==LollipopSide.TOP)
-                return AllianceFlipUtil.apply(new Pose2d(1.8302104473114014, 6.76573371887207, Rotation2d.fromDegrees(-54)));
+                return AllianceFlipUtil.apply(new Pose2d(1.8302104473114014, 6.76573371887207, Rotation2d.fromDegrees(0)));
         else if(side==LollipopSide.MIDDLE)
-                return AllianceFlipUtil.apply(new Pose2d(1.8302104473114014, 4.0085768699646, Rotation2d.fromDegrees(-54)));
-        return AllianceFlipUtil.apply(new Pose2d(1.8302104473114014, 2.1849470138549805, Rotation2d.fromDegrees(-54)));
+                return AllianceFlipUtil.apply(new Pose2d(1.8302104473114014, 4.0085768699646, Rotation2d.fromDegrees(0)));
+        return AllianceFlipUtil.apply(new Pose2d(1.8302104473114014, 2.1849470138549805, Rotation2d.fromDegrees(0)));
     }
 
     /**
@@ -421,15 +421,19 @@ public class Autos extends SubsystemBase{
     }
 
 
-    // basic leave auto
-    public Command getBasicAutoCommand() {
-        ChassisSpeeds initial_speed = new ChassisSpeeds(1, 0, 0);
-        ChassisSpeeds final_speed = new ChassisSpeeds(0, 0, 0);
+    // basic leave auto as routine
+    public AutoRoutine getBasicLeaveAutoRoutine() {
+        AutoRoutine routine = autoFactory.newRoutine("ONLYLEAVE");
 
-        return this.runEnd(
-            () -> swerve.setChassisSpeeds(initial_speed),
-            () -> swerve.setChassisSpeeds(final_speed)
+        routine.active().onTrue(
+            Commands.runEnd(
+                () -> swerve.setChassisSpeeds(new ChassisSpeeds(1, 0, 0)),
+                () -> swerve.setChassisSpeeds(new ChassisSpeeds(0, 0, 0)),
+                swerve
+            ).withTimeout(0.6) // move for a short duration, then stop
         );
+
+        return routine;
     }
 
 }
