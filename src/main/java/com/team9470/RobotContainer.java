@@ -52,16 +52,10 @@ public class RobotContainer {
         DataLogManager.start();
         configureBindings();
 
-        autoChooser.addRoutine("1CMN", autos::getOneCoralMiddleAutoNormal);
-        autoChooser.addRoutine("1CMC", autos::getOneCoralMiddleAutoChoreo);
         autoChooser.addRoutine("1CMA", autos::getOneCoralMiddleAutoAlign);
-        autoChooser.addRoutine("5CTA", autos::getFiveCoralTopAutoAlign);
-        autoChooser.addRoutine("5CBA", autos::getFiveCoralBottomAutoAlign);
-        autoChooser.addRoutine("5CBA-NW", autos::getFiveCoralBottomAutoAlignNoWait);
-        autoChooser.addRoutine("5CTA-NW", autos::getFiveCoralTopAutoAlignNoWait);
         autoChooser.addRoutine("4CTS", autos::getFourCoralTopAutoSweep);
         autoChooser.addRoutine("4CBS", autos::getFourCoralBottomAutoSweep);
-        autoChooser.select("2C Test");
+        autoChooser.addRoutine("ONLYLEAVE", autos::getBasicLeaveAutoRoutine);
         SmartDashboard.putData("AutoChooser", autoChooser);
         SmartDashboard.putData("Mechanism", mech);
         SmartDashboard.putData(
