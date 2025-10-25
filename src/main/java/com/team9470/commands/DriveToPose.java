@@ -105,7 +105,7 @@ public class DriveToPose extends Command {
         drivetrain.setChassisSpeeds(new ChassisSpeeds(0, 0, 0));
     }
 
-    private static Pose2d getDriveTarget(Pose2d robot, Pose2d goal) {
+    public static Pose2d getDriveTarget(Pose2d robot, Pose2d goal) {
         Translation2d offset = robot.relativeTo(goal).getTranslation();
         double yDistance = Math.abs(offset.getY());
         double xDistance = Math.abs(offset.getX());

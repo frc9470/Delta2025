@@ -80,31 +80,35 @@ public class Autos extends SubsystemBase{
         return AllianceFlipUtil.apply(new Pose2d(1.8302104473114014, 2.1849470138549805, Rotation2d.fromDegrees(-54)));
     }
 
-        /**
-         * Creates a command that performs a sweeping motion through the specified waypoints.
-         * The robot will move through each position in sequence, maintaining the specified heading at each waypoint.
-         *
-         * @return Command that executes the sweeping motion
-         */
-        public Command getSweepMotionCommand(boolean top) {
+    /**
+     * Creates a command that performs a sweeping motion through the specified waypoints.
+     * The robot will move through each position in sequence, maintaining the specified heading at each waypoint.
+     *
+     * @return Command that executes the sweeping motion
+     */
+    public Command getSweepMotionCommand(boolean top) {
+        return getSweepMotionCommand(top, false);
+    }
+
+    public Command getSweepMotionCommand(boolean top, boolean useDriveToPose) {
         // Define different waypoints for top vs bottom source
         Pose2d[] waypoints;
 
         if (top) {
             waypoints = new Pose2d[]{
-                new Pose2d(2.8092904090881348, 7.4921770095825195, Rotation2d.fromDegrees(0)),
-                new Pose2d(2.0143749713897705, 7.4921770095825195, Rotation2d.fromDegrees(19.5)),
-                new Pose2d(1.2194594144821167, 7.164858818054199, Rotation2d.fromDegrees(36)),
-                new Pose2d(0.728482186794281, 6.627121925354004, Rotation2d.fromDegrees(55)),
-                new Pose2d(0.5648230910301208, 5.972485542297363, Rotation2d.fromDegrees(90))
+                    new Pose2d(2.8092904090881348, 7.4921770095825195, Rotation2d.fromDegrees(0)),
+                    new Pose2d(2.0143749713897705, 7.4921770095825195, Rotation2d.fromDegrees(19.5)),
+                    new Pose2d(1.2194594144821167, 7.164858818054199, Rotation2d.fromDegrees(36)),
+                    new Pose2d(0.728482186794281, 6.627121925354004, Rotation2d.fromDegrees(55)),
+                    new Pose2d(0.5648230910301208, 5.972485542297363, Rotation2d.fromDegrees(90))
             };
         } else {
             waypoints = new Pose2d[]{
-                new Pose2d(2.8092904090881348, 0.7078229904174805, Rotation2d.fromDegrees(0)),
-                new Pose2d(2.0143749713897705, 0.7078229904174805, Rotation2d.fromDegrees(-19.5)),
-                new Pose2d(1.2194594144821167, 1.0351411819458008, Rotation2d.fromDegrees(-36)),
-                new Pose2d(0.728482186794281, 1.572878074645996, Rotation2d.fromDegrees(-55)),
-                new Pose2d(0.5648230910301208, 2.227514457702637, Rotation2d.fromDegrees(-90))
+                    new Pose2d(2.8092904090881348, 0.7078229904174805, Rotation2d.fromDegrees(0)),
+                    new Pose2d(2.0143749713897705, 0.7078229904174805, Rotation2d.fromDegrees(-19.5)),
+                    new Pose2d(1.2194594144821167, 1.0351411819458008, Rotation2d.fromDegrees(-36)),
+                    new Pose2d(0.728482186794281, 1.572878074645996, Rotation2d.fromDegrees(-55)),
+                    new Pose2d(0.5648230910301208, 2.227514457702637, Rotation2d.fromDegrees(-90))
             };
         }
 
@@ -113,15 +117,16 @@ public class Autos extends SubsystemBase{
             waypoints[i] = AllianceFlipUtil.apply(waypoints[i]);
         }
 
-        // Create a sequence of DriveToPose commands for each waypoint
-        Command[] driveCommands = new Command[waypoints.length];
-        for (int i = 0; i < waypoints.length; i++) {
-            final int index = i; // Capture for lambda
-            driveCommands[i] = new DriveToPose(() -> waypoints[index], swerve, true, 0.5);
+        if (useDriveToPose) {
+            Command[] driveCommands = new Command[waypoints.length];
+            for (int i = 0; i < waypoints.length; i++) {
+                final int index = i; // Capture for lambda
+                driveCommands[i] = new DriveToPose(() -> waypoints[index], swerve, true, 0.5);
+            }
+            return Commands.sequence(driveCommands);
         }
 
-        // Return a sequential command that moves through all waypoints
-        return Commands.sequence(driveCommands);
+        return new DriveThroughWaypoints(swerve, waypoints, true, 0.5);
     }
 
 
