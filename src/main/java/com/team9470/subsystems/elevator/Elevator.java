@@ -436,6 +436,22 @@ public class Elevator extends SubsystemBase {
     public Command L4(){
         return getMoveToPositionCommand(ElevatorConstants.L4);
     }
+
+    public Command AL1(){
+        return getMoveToPositionCommand(ALGAE_L1);
+    }
+
+    public Command AL2(){
+        return getMoveToPositionCommand(ElevatorConstants.ALGAE_L2);
+    }
+
+    public Command AL3(){
+        return getMoveToPositionCommand(ElevatorConstants.ALGAE_L3);
+    }
+
+    public Command AL4(){
+        return getMoveToPositionCommand(ElevatorConstants.L4);
+    }
     public Command intake(){
         return getMoveToPositionCommand(ElevatorConstants.INTAKE);
     }
@@ -447,6 +463,16 @@ public class Elevator extends SubsystemBase {
             case 2 -> L2();
             case 3 -> L3();
             case 4 -> L4();
+            default -> L0();
+        };
+    }
+
+    public Command getAlgaeLevelCommand(int level){
+        return switch (level) {
+            case 1 -> AL1();
+            case 2 -> AL2();
+            case 3 -> AL3();
+            case 4 -> AL4();
             default -> L0();
         };
     }

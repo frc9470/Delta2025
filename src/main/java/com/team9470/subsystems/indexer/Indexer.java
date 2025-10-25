@@ -132,9 +132,9 @@ public class Indexer extends SubsystemBase {
     public Command runCommand() {
         return this.run(() -> {
 
-                if(indexerMotor1.getStatorCurrent().getValue().lte(CORAL_DETECTION_CURRENT) || indexerMotor2.getStatorCurrent().getValue().lte(CORAL_DETECTION_CURRENT))
-                    this.unjamIndexer();
-                else
+//                if(indexerMotor1.getStatorCurrent().getValue().gte(CORAL_DETECTION_CURRENT) || indexerMotor2.getStatorCurrent().getValue().gte(CORAL_DETECTION_CURRENT))
+//                    this.unjamIndexer();
+//                else
                     this.startIndexer();
             }
         );

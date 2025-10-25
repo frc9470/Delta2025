@@ -23,7 +23,7 @@ public final class ArmConstants {
 
     public static final Angle CORAL_HANDOFF_PREP_ANGLE = Units.Degrees.of(-88);
 
-    public static final Angle ALGAE_GROUND_INTAKE_ANGLE = Units.Degrees.of(-30);
+    public static final Angle ALGAE_GROUND_INTAKE_ANGLE = Units.Degrees.of(-40);
     public static final Angle ALGAE_REEF_INTAKE_ANGLE = Units.Degrees.of(0);
 
     // Coral scoring angles
@@ -37,7 +37,7 @@ public final class ArmConstants {
 
     public static final Angle CORAL_L2_BEFORE_SCORING = Units.Degrees.of(60);
     public static final Angle CORAL_L2_RELEASE = Units.Degrees.of(30);
-    public static final Angle CORAL_L2_SCORING = Units.Degrees.of(0);
+    public static final Angle CORAL_L2_SCORING = Units.Degrees.of(20);
 
     public static final Angle CORAL_L1_BEFORE_SCORING = Units.Degrees.of(-30);
     public static final Angle CORAL_L1_SCORING = Units.Degrees.of(-30);
@@ -58,7 +58,7 @@ public final class ArmConstants {
     // Roller control
     public static final Voltage ROLLER_INTAKE_SPEED = Units.Volts.of(6.0);
     public static final Voltage ROLLER_OUTPUT_SPEED = Units.Volts.of(-6.0);
-    public static final Voltage ROLLER_HOLD_SPEED = Units.Volts.of(0.5); // Stalls to hold items
+    public static final Voltage ROLLER_HOLD_SPEED = Units.Volts.of(2.0); // Stalls to hold items
 
     // Item detection
     public static final Current ITEM_DETECTION_CURRENT = Units.Amps.of(30.0);
@@ -94,7 +94,7 @@ public final class ArmConstants {
         TalonFXConfiguration config = new TalonFXConfiguration();
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.CurrentLimits.StatorCurrentLimitEnable = true;
-        config.CurrentLimits.StatorCurrentLimit = 50;
+        config.CurrentLimits.StatorCurrentLimit = 60;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         return config;
     }

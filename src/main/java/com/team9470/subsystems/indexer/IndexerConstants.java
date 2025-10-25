@@ -19,7 +19,7 @@ public final class IndexerConstants {
     public static final Voltage INDEXER_HOLD_SPEED = Units.Volts.of(0.1);
 
     // Current thresholds for coral detection
-    public static final Current CORAL_DETECTION_CURRENT = Units.Amps.of(8.0);
+    public static final Current CORAL_DETECTION_CURRENT = Units.Amps.of(20.0);
 
     // Timeout for coral detection debouncing (rising-edge filter)
     public static final double CORAL_DETECTION_TIMEOUT = 0.1; // seconds

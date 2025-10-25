@@ -130,6 +130,8 @@ public class RobotContainer {
                     superstructure.scoreHeldPiece()
             );
 
+        xbox.povUp().onTrue(superstructure.getElevator().getHomingCommand());
+
         // ----- DEBUG CONTROLS. -----
 
         // ARM OUTTAKE.

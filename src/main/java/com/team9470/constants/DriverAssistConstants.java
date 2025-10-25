@@ -19,7 +19,7 @@ public final class DriverAssistConstants {
     public static final Distance pipeDistance = Units.Meters.of(0.1651);
     public static final Distance fieldLength = Units.Meters.of(17.548225);
     public static final Distance OUTWARD_OFFSET = Units.Inches.of(-5); // distance away from reef
-    public static final Distance MANUAL_LATERAL_OFFSET = Units.Inches.of(1); // manual left/right shift
+    public static final Distance MANUAL_LATERAL_OFFSET = Units.Inches.of(0); // manual left/right shift
 
     public static Pose2d[] getReefPositions() {
         Pose2d[] reefPositions = new Pose2d[12];

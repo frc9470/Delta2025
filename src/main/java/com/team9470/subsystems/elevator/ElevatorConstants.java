@@ -43,11 +43,16 @@ public final class ElevatorConstants {
     // Positions
     public static final Distance HOME_POSITION = Units.Meters.of(0.033);
     public static final Distance L0 = Units.Meters.of(0.0); // INTAKE
-    public static final Distance L1 = Units.Meters.of(0.22);
+    public static final Distance L1 = Units.Meters.of(0.29);
     public static final Distance L2 = Units.Meters.of(0.0);
     public static final Distance L3 = Units.Meters.of(0.36);
     public static final Distance L4 = Units.Meters.of(0.97);
     public static final Distance INTAKE = Units.Meters.of(0);
+
+
+    public static final Distance ALGAE_L1 = Units.Meters.of(.1);
+    public static final Distance ALGAE_L2 = Units.Meters.of(.4);
+    public static final Distance ALGAE_L3 = Units.Meters.of(.65);
 
     public static final Distance STOW_POSITION = Units.Meters.of(0.15);
 

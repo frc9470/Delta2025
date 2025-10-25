@@ -240,9 +240,10 @@ public class Superstructure extends SubsystemBase {
                     arm.startIntake();
                 }),
                 new ParallelDeadlineGroup(
-                        Commands.waitUntil(arm::isHoldingItem),
+                        Commands.waitUntil(arm::isHoldingItem).andThen(new WaitCommand(0.4)),
                         new ParallelCommandGroup(
-                                elevator.getLevelCommand(level.elevatorLevel()),
+                                new RunCommand(arm::startIntake),
+                                elevator.getAlgaeLevelCommand(level.elevatorLevel()),
                                 arm.moveCommand(ArmConstants.ALGAE_REEF_INTAKE_ANGLE)
                         )
                 ),
@@ -327,8 +328,9 @@ public class Superstructure extends SubsystemBase {
 
         return new ParallelCommandGroup(
                 elevator.getLevelCommand(level.elevatorLevel()),
-                armCommand
-        ).andThen(Commands.runOnce(() -> currentLevel = level));
+                armCommand,
+                Commands.runOnce(() -> currentLevel = level)
+        );
     }
 
     public Command coralScore(Level level) {
@@ -354,8 +356,8 @@ public class Superstructure extends SubsystemBase {
                                         .withTimeout(2.0),
                                 new ParallelCommandGroup(
                                         new RunCommand(arm::startOutput),
-                                        this.run(() -> drivetrain.setChassisSpeeds(new ChassisSpeeds(-1, 0.0, 0.0)))
-                                ).withTimeout(1).finallyDo(() -> drivetrain.setChassisSpeeds(new ChassisSpeeds()))
+                                        this.run(() -> drivetrain.setChassisSpeeds(new ChassisSpeeds(-1.5, 0.0, 0.0)))
+                                ).withTimeout(.5).finallyDo(() -> drivetrain.setChassisSpeeds(new ChassisSpeeds()))
                         )
                 ),
                 stow()

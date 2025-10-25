@@ -201,11 +201,11 @@ public class Autos extends SubsystemBase{
                                 .withDeadline(alignToSourceWait(true)),
 
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(10, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(alignToSourceWait(true)),
 
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(11, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(alignToSourceWait(true)),
 
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(11, Superstructure.Level.L3), swerve),
@@ -229,11 +229,11 @@ public class Autos extends SubsystemBase{
                                 .withDeadline(alignToSourceWait(false)),
 
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(3, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(alignToSourceWait(false)),
 
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(2, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(alignToSourceWait(false)),
 
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(2, Superstructure.Level.L3), swerve),
@@ -261,7 +261,7 @@ public class Autos extends SubsystemBase{
                                 .withDeadline(alignToSource(true)),
                         new WaitCommand(INTAKE_DELAY),
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(11, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(alignToSource(true)),
                         new WaitCommand(INTAKE_DELAY),
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(11, Superstructure.Level.L2), swerve),
@@ -289,7 +289,7 @@ public class Autos extends SubsystemBase{
                                 .withDeadline(alignToSource(false)),
                         new WaitCommand(INTAKE_DELAY),
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(2, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(alignToSource(false)),
                         new WaitCommand(INTAKE_DELAY),
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(2, Superstructure.Level.L3), swerve),
@@ -310,17 +310,17 @@ public class Autos extends SubsystemBase{
                 Commands.sequence(
                         // First score - start position
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(9, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(alignToSourceWait(true)),
 
                         // Second score - from source
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(10, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(alignToLollipopWait(LollipopSide.MIDDLE)),
 
                         // Third score - from middle lollipop
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(11, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(alignToSourceWait(true)),
 
                         // Fourth score - from source again
@@ -338,17 +338,17 @@ public class Autos extends SubsystemBase{
                 Commands.sequence(
                         // First score - start position
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(4, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(alignToSourceWait(false)),
 
                         // Second score - from source
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(3, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(alignToLollipopWait(LollipopSide.MIDDLE)),
 
                         // Third score - from middle lollipop
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(2, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(alignToSourceWait(false)),
 
                         // Fourth score - from source again
@@ -366,17 +366,17 @@ public class Autos extends SubsystemBase{
                 Commands.sequence(
                         // First score - start position
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(9, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(getSweepMotionCommand(true)),
 
                         // Second score - from sweep intake
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(10, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(alignToLollipopWait(LollipopSide.MIDDLE)),
 
                         // Third score - from middle lollipop
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(11, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(getSweepMotionCommand(true)),
 
                         // Fourth score - from sweep intake again
@@ -394,17 +394,17 @@ public class Autos extends SubsystemBase{
                 Commands.sequence(
                         // First score - start position
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(4, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(getSweepMotionCommand(false)),
 
                         // Second score - from sweep intake
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(3, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(alignToLollipopWait(LollipopSide.MIDDLE)),
 
                         // Third score - from middle lollipop
                         AutoScoring.autoScoreWithTimeout(superstructure, new AutoScoring.CoralObjective(2, Superstructure.Level.L4), swerve),
-                        elevator.L0()
+                        superstructure.stow()
                                 .withDeadline(getSweepMotionCommand(false)),
 
                         // Fourth score - from sweep intake again
