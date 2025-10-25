@@ -103,8 +103,6 @@ public class RobotContainer {
                 superstructure.stopIntakeGround()
             );
 
-        // Returns the arm to a stowed position.
-        xbox.povDown().onTrue(superstructure.stow());
 
         // ELEVATOR LEVELS.
         xbox.a()
@@ -135,6 +133,10 @@ public class RobotContainer {
         xbox.povUp().onTrue(superstructure.getElevator().getHomingCommand());
 
         // ----- DEBUG CONTROLS. -----
+
+
+        // Returns the arm to a stowed position.
+        xbox.povDown().onTrue(superstructure.stow());
 
         // ARM OUTTAKE.
         xbox.povLeft()
