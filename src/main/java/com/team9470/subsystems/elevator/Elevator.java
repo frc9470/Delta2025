@@ -9,6 +9,7 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 import com.team254.lib.drivers.TalonFXFactory;
 import com.team254.lib.drivers.TalonUtil;
 import com.team9470.subsystems.MusicPlayer;
+import com.team9470.subsystems.arm.ArmConstants;
 import com.team9470.Ports;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.*;
@@ -24,6 +25,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import java.util.function.Supplier;
 
 import static com.team9470.subsystems.elevator.ElevatorConstants.*;
 import static edu.wpi.first.units.Units.*;
@@ -63,6 +65,12 @@ public class Elevator extends SubsystemBase {
 
     // Our "goal" position in meters
     private Distance targetPosition = STOW_POSITION;
+    private Distance requestedPosition = STOW_POSITION;
+
+    private boolean armAllowsBelowStow = true;
+    private boolean armAllowsBelowHome = true;
+
+    private Supplier<Angle> armAngleSupplier = () -> ArmConstants.STOW_ANGLE;
 
     // Keep track of time when homing started
     private Time homingStartTime = Seconds.of(0);
@@ -108,20 +116,23 @@ public class Elevator extends SubsystemBase {
      */
     public static class PeriodicIO {
         // ---------------- Inputs ----------------
-        public Time timestamp;
-        public Distance positionMeters;         // Actual elevator position (m)
-        public LinearVelocity velocityMps;      // Actual elevator velocity (m/s)
-        public Current current;                 // Stator current
-        public Voltage voltage;
-        public Distance closedLoopError;        // difference between on-loop SETPOINT & actual
+        public Time timestamp = Seconds.of(0);
+        public Distance positionMeters = Meters.of(0);         // Actual elevator position (m)
+        public LinearVelocity velocityMps = MetersPerSecond.of(0);      // Actual elevator velocity (m/s)
+        public Current current = Amps.of(0);                 // Stator current
+        public Voltage voltage = Volts.of(0);
+        public Distance closedLoopError = Meters.of(0);        // difference between on-loop SETPOINT & actual
 
         // ---------------- Outputs / Telemetry ----------------
-        public Distance goal;                         // Overall goal of the system
-        public Distance setpointPositionMeters;        // The PER-LOOP commanded position in meters
-        public double setpointPositionRotations;       // The PER-LOOP commanded position in rotations
-        public double setpointVelocityRotPerSec;       // The commanded velocity in rotations/sec
-        public LinearVelocity setpointVelocityMps;     // The commanded velocity in m/s
-        public HomingState homingState;               // Current homing state
+        public Distance goal = STOW_POSITION;                         // Overall goal of the system
+        public Distance requestedGoal = STOW_POSITION;
+        public boolean armAllowsBelowStow = true;
+        public boolean armAllowsBelowHome = true;
+        public Distance setpointPositionMeters = Meters.of(0);        // The PER-LOOP commanded position in meters
+        public double setpointPositionRotations;
+        public double setpointVelocityRotPerSec;
+        public LinearVelocity setpointVelocityMps = MetersPerSecond.of(0);     // The commanded velocity in m/s
+        public HomingState homingState = HomingState.IDLE;               // Current homing state
     }
 
     public Elevator(Mechanism2d mechanism) {
@@ -179,6 +190,8 @@ public class Elevator extends SubsystemBase {
         // Store the homing state in periodicIO for telemetry
         periodicIO.homingState = homingState;
 
+        updateTargetWithArmSafety();
+
         // 3) Write outputs (calculate setpoints and command the motor)
         writePeriodicOutputs();
 
@@ -215,12 +228,70 @@ public class Elevator extends SubsystemBase {
 
     /** Command the elevator to a given (meter) setpoint. */
     public void setPosition(Distance position) {
-        targetPosition = position;
+        requestedPosition = position;
+        updateTargetWithArmSafety();
+    }
+
+    public void setArmAngleSupplier(Supplier<Angle> armAngleSupplier) {
+        this.armAngleSupplier = armAngleSupplier;
     }
 
     /** Get the elevator’s current position in meters. */
     public Distance getPosition() {
         return periodicIO.positionMeters;
+    }
+
+    private void updateTargetWithArmSafety() {
+        Distance safeTarget = applyArmSafetyConstraints(requestedPosition);
+        targetPosition = safeTarget;
+
+        periodicIO.goal = targetPosition;
+        periodicIO.requestedGoal = requestedPosition;
+        periodicIO.armAllowsBelowStow = armAllowsBelowStow;
+        periodicIO.armAllowsBelowHome = armAllowsBelowHome;
+    }
+
+    private Distance applyArmSafetyConstraints(Distance requestedPosition) {
+        if (armAngleSupplier == null) {
+            armAllowsBelowStow = true;
+            armAllowsBelowHome = true;
+            return requestedPosition;
+        }
+
+        Angle armAngle = armAngleSupplier.get();
+        if (armAngle == null) {
+            armAllowsBelowStow = true;
+            armAllowsBelowHome = true;
+            return requestedPosition;
+        }
+
+        boolean isArmStraightDown = armAngle.isNear(ArmConstants.STOW_ANGLE, ElevatorConstants.ARM_STRAIGHT_DOWN_TOLERANCE)
+                || armAngle.isNear(ArmConstants.HOMING_ANGLE, ElevatorConstants.ARM_STRAIGHT_DOWN_TOLERANCE);
+        double armDegrees = armAngle.in(Degrees);
+        boolean isArmAboveSafeAngle =
+                armDegrees >= ElevatorConstants.ARM_MIN_ANGLE_FOR_FULL_LOWERING.in(Degrees);
+
+        armAllowsBelowStow = isArmStraightDown || isArmAboveSafeAngle;
+        armAllowsBelowHome = isArmAboveSafeAngle;
+
+        Distance minimumAllowed = STOW_POSITION;
+        if (armAllowsBelowStow) {
+            minimumAllowed = HOME_POSITION;
+        }
+        if (armAllowsBelowHome) {
+            minimumAllowed = L0;
+        }
+
+        double requestedMeters = requestedPosition.in(Meters);
+        double minimumAllowedMeters = minimumAllowed.in(Meters);
+
+        if (requestedMeters < minimumAllowedMeters) {
+            // Prevent the elevator from descending into an unsafe region. Command the
+            // limiting position so we wait there until the arm becomes safe again.
+            return minimumAllowed;
+        }
+
+        return requestedPosition;
     }
 
     /** Return true if we are in the middle of homing. */
@@ -256,7 +327,6 @@ public class Elevator extends SubsystemBase {
         periodicIO.closedLoopError = DIST_PER_ROTATION.times(errorSignal.asSupplier().get());
 
         // For telemetry
-        periodicIO.goal = targetPosition;
         periodicIO.setpointPositionMeters = DIST_PER_ROTATION.times(setpointPositionSignal.asSupplier().get());
         periodicIO.setpointPositionRotations = setpointPositionSignal.asSupplier().get();
         periodicIO.setpointVelocityRotPerSec = setpointVelocitySignal.asSupplier().get();
@@ -350,6 +420,9 @@ public class Elevator extends SubsystemBase {
 
         // Goal
         SmartDashboard.putNumber("Elevator/Goal", periodicIO.goal.in(Meters));
+        SmartDashboard.putNumber("Elevator/RequestedGoal", periodicIO.requestedGoal.in(Meters));
+        SmartDashboard.putBoolean("Elevator/ArmAllowsBelowStow", periodicIO.armAllowsBelowStow);
+        SmartDashboard.putBoolean("Elevator/ArmAllowsBelowHome", periodicIO.armAllowsBelowHome);
 
         // Desired setpoints
         SmartDashboard.putNumber("Elevator/Setpoint/Position_m", periodicIO.setpointPositionMeters.in(Meters));

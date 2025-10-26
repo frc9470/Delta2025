@@ -60,6 +60,7 @@ public class Superstructure extends SubsystemBase {
         this.elevator = new Elevator(mech);
         this.indexer = new Indexer();
         this.arm = new Arm();
+        this.elevator.setArmAngleSupplier(arm::getAngle);
         this.intake = new Intake();
         this.drivetrain = drivetrain;
     }
