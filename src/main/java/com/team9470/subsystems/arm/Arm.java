@@ -242,6 +242,12 @@ public class Arm extends SubsystemBase {
         rollersRunning = true;
     }
 
+    /** Start output rollers */
+    public void startOutputSlow() {
+        rollerMotor.setVoltage(ArmConstants.ROLLER_OUTPUT_SPEED.in(Volts));
+        rollersRunning = true;
+    }
+
     /** Hold item with stalling voltage */
     public void holdItem() {
         rollerMotor.setVoltage(ArmConstants.ROLLER_HOLD_SPEED.in(Volts));

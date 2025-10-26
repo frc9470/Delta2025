@@ -350,9 +350,9 @@ public class Superstructure extends SubsystemBase {
                         armCommand,
                         Commands.sequence(
                                 new WaitUntilCommand(() -> arm.getAngle().isNear(releaseAngle, Degrees.of(5)))
-                                        .withTimeout(2.0),
+                                        .withTimeout(.5),
                                 new ParallelCommandGroup(
-                                        new RunCommand(arm::startOutput),
+                                        Commands.either(new RunCommand(arm::startOutputSlow), new RunCommand(arm::startOutput), () -> level == Level.L1),
                                         this.run(() -> drivetrain.setChassisSpeeds(new ChassisSpeeds(-1.5, 0.0, 0.0)))
                                 ).withTimeout(.5).finallyDo(() -> drivetrain.setChassisSpeeds(new ChassisSpeeds()))
                         )

@@ -25,7 +25,9 @@ public class AutoScoring {
 
 
     public static Command autoScore(Superstructure superstructure, CoralObjective objective, Swerve drivetrain) {
-        return new WaitUntilCommand(superstructure::hasCoralInArm).andThen(createAutoScoreCommand(superstructure, objective, drivetrain, false));
+//        return new WaitUntilCommand(superstructure::hasCoralInArm).andThen(
+                return createAutoScoreCommand(superstructure, objective, drivetrain, false);
+                //);
     }
 
     public Command autoAlign(Superstructure superstructure) {

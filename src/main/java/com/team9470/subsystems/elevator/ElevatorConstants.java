@@ -51,11 +51,11 @@ public final class ElevatorConstants {
 
 
     public static final Distance ALGAE_L1 = Units.Meters.of(.0);
-    public static final Distance ALGAE_L2 = Units.Meters.of(.3);
-    public static final Distance ALGAE_L3 = Units.Meters.of(.65);
+    public static final Distance ALGAE_L2 = Units.Meters.of(.33);
+    public static final Distance ALGAE_L3 = Units.Meters.of(.68);
     public static final Distance ALGAE_L4 = Units.Meters.of(1.2);
 
-    public static final Distance STOW_POSITION = Units.Meters.of(0.15);
+    public static final Distance STOW_POSITION = Units.Meters.of(0.2);
 
     public static TalonFXConfiguration ElevatorFXConfig() {
         TalonFXConfiguration config = new TalonFXConfiguration();
@@ -74,7 +74,7 @@ public final class ElevatorConstants {
         config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
         config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         config.CurrentLimits.StatorCurrentLimitEnable = true;
-        config.CurrentLimits.StatorCurrentLimit = 50;
+        config.CurrentLimits.StatorCurrentLimit = 40;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         return config;
     }
@@ -83,7 +83,7 @@ public final class ElevatorConstants {
         TalonFXConfiguration config = new TalonFXConfiguration();
         config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         config.CurrentLimits.StatorCurrentLimitEnable = true;
-        config.CurrentLimits.StatorCurrentLimit = 50;
+        config.CurrentLimits.StatorCurrentLimit = 40;
         return config;
     }
 }

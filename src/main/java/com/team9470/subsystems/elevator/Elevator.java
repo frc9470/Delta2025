@@ -230,7 +230,7 @@ public class Elevator extends SubsystemBase {
 
     // Example: check if we might be stalling
     public boolean isStalling() {
-        return periodicIO.current.in(Amps) >= 40;
+        return periodicIO.current.in(Amps) >= 30;
     }
 
     // ------------------ Internal (Periodic) Methods ------------------
