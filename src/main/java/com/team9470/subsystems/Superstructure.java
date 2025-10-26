@@ -170,6 +170,7 @@ public class Superstructure extends SubsystemBase {
                                 Commands.runOnce(arm::startIntake)
                         )
                 ),
+                new InstantCommand(() -> SmartDashboard.putBoolean("AUTO/PICKUP NOW STOW", true)),
                 stow(),
                 Commands.runOnce(() -> {
                     if (arm.isHoldingItem()) {
@@ -181,6 +182,34 @@ public class Superstructure extends SubsystemBase {
                     arm.stopRollers();
                 })
         ).withName("CoralCradlePickup")
+                .finallyDo(() -> heldPiece = PieceType.CORAL);
+    }
+
+    public Command manualCoralCradlePickup() {
+        return Commands.sequence(
+                        Commands.runOnce(() -> heldPiece = PieceType.NONE),
+                        new ParallelCommandGroup(
+                                elevator.L1(),
+                                arm.moveCommand(ArmConstants.CORAL_HANDOFF_PREP_ANGLE)
+                        ),
+                        new ParallelDeadlineGroup(
+                                new WaitUntilCommand(arm::isHoldingItem).andThen(new WaitCommand(0.4)).withTimeout(ArmConstants.INTAKE_TIMEOUT.in(Seconds)),
+                                new ParallelCommandGroup(
+                                        elevator.getMoveToPositionCommand(ElevatorConstants.HOME_POSITION),
+                                        Commands.runOnce(arm::startIntake)
+                                )
+                        ),
+                        new InstantCommand(() -> SmartDashboard.putBoolean("AUTO/PICKUP NOW STOW", true)),
+                        Commands.runOnce(() -> {
+                            if (arm.isHoldingItem()) {
+                                arm.holdItem();
+                                heldPiece = PieceType.CORAL;
+                                coralInCradle = indexer.hasCoral();
+                                currentLevel = Level.L1;
+                            }
+                            arm.stopRollers();
+                        })
+                ).withName("CoralCradlePickup")
                 .finallyDo(() -> heldPiece = PieceType.CORAL);
     }
 
@@ -354,7 +383,15 @@ public class Superstructure extends SubsystemBase {
                                 new ParallelCommandGroup(
                                         Commands.either(new RunCommand(arm::startOutputSlow), new RunCommand(arm::startOutput), () -> level == Level.L1),
                                         this.run(() -> drivetrain.setChassisSpeeds(new ChassisSpeeds(-1.5, 0.0, 0.0)))
-                                ).withTimeout(.5).finallyDo(() -> drivetrain.setChassisSpeeds(new ChassisSpeeds()))
+                                ).withTimeout(.5).finallyDo(
+                                        () -> {
+                                            drivetrain.setChassisSpeeds(new ChassisSpeeds());
+                                            heldPiece = PieceType.NONE;
+                                            coralInCradle = indexer.hasCoral();
+                                            arm.stopRollers();
+
+                                        }
+                                )
                         )
                 ),
                         new InstantCommand(() -> SmartDashboard.putBoolean("AUTO/FINISH AUTOSCORE", true)),

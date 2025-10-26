@@ -9,6 +9,7 @@ import com.team9470.util.AllianceFlipUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 
 public class Autos extends SubsystemBase{
@@ -193,13 +194,17 @@ public class Autos extends SubsystemBase{
     }
 
     public Command intakeSweep(boolean top){
-        return superstructure.stow().withTimeout(0.02)
+        return superstructure.getArm().stowNoHome().alongWith(superstructure.getElevator().stow()).withTimeout(0.02)
                 .andThen(
                         superstructure.waitForIntake()
-                                .deadlineFor(getSweepMotionCommand(top))
-                                .alongWith(superstructure.intakeCoralGround().andThen(superstructure.coralCradlePickup()))
+                                .deadlineFor(
+                                        getSweepMotionCommand(top)
+                                        .alongWith(superstructure.intakeCoralGround()
+                                        )
+                                )
+                                .andThen(superstructure.manualCoralCradlePickup().withTimeout(1).andThen(new InstantCommand(() -> SmartDashboard.putBoolean("AUTO/FINISHED PICKUP", true))))
 
-                );
+                ).andThen(new InstantCommand(() -> SmartDashboard.putBoolean("AUTO/FINISHED SWEEP", true)));
     }
 
     public AutoRoutine getFourCoralTopAutoSweep() {

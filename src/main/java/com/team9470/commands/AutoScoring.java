@@ -153,7 +153,8 @@ public class AutoScoring {
 
         Command driveAndPrepare = Commands.parallel(drive, new WaitUntilCommand(superstructure::hasCoralInArm).andThen(prepare));
 
-        return driveAndPrepare.andThen(new InstantCommand(() -> SmartDashboard.putBoolean("AUTO/DRIVE FINISHED", true))).andThen(superstructure.coralScore(objective.level()).withTimeout(1.5));
+        return driveAndPrepare.andThen(new InstantCommand(() -> SmartDashboard.putBoolean("AUTO/DRIVE FINISHED", true)))
+                .andThen(superstructure.coralScore(objective.level()).withTimeout(1.5));
     }
 
     private static Command createAutoAlignCommand(CoralObjective objective, Swerve drivetrain, boolean straight) {

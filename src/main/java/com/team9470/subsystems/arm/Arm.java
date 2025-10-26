@@ -277,6 +277,10 @@ public class Arm extends SubsystemBase {
         return moveCommand(ArmConstants.STOW_ANGLE).withTimeout(.5).andThen(getHomingCommand());
     }
 
+    public Command stowNoHome(){
+        return moveCommand(ArmConstants.STOW_ANGLE).withTimeout(.5);
+    }
+
     /** Returns whether the arm is close to the stow position. */
     public boolean isStowed() {
         return getAngle().isNear(ArmConstants.STOW_ANGLE, Degrees.of(3));
