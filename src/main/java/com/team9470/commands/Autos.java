@@ -195,8 +195,10 @@ public class Autos extends SubsystemBase{
     public Command intakeSweep(boolean top){
         return superstructure.stow().withTimeout(0.02)
                 .andThen(
-                        getSweepMotionCommand(top)
+                        superstructure.waitForIntake()
+                                .deadlineFor(getSweepMotionCommand(top))
                                 .alongWith(superstructure.intakeCoralGround().andThen(superstructure.coralCradlePickup()))
+
                 );
     }
 
@@ -210,7 +212,6 @@ public class Autos extends SubsystemBase{
                         intakeSweep(true),
 
                         // Second score - from sweep intake
-
                         AutoScoring.autoScore(superstructure, new AutoScoring.CoralObjective(10, Superstructure.Level.L4), swerve),
                         intakeSweep(true),
 

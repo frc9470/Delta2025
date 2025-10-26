@@ -50,9 +50,9 @@ public final class ElevatorConstants {
     public static final Distance INTAKE = Units.Meters.of(0);
 
 
-    public static final Distance ALGAE_L1 = Units.Meters.of(.1);
+    public static final Distance ALGAE_L1 = Units.Meters.of(.0);
     public static final Distance ALGAE_L2 = Units.Meters.of(.3);
-    public static final Distance ALGAE_L3 = Units.Meters.of(.6);
+    public static final Distance ALGAE_L3 = Units.Meters.of(.65);
     public static final Distance ALGAE_L4 = Units.Meters.of(1.2);
 
     public static final Distance STOW_POSITION = Units.Meters.of(0.15);

@@ -124,10 +124,15 @@ public class RobotContainer {
                     superstructure.scoreHeldPiece()
             );
 
-        xbox.povUp().onTrue(superstructure.getElevator().getHomingCommand());
 
         // ----- DEBUG CONTROLS. -----
 
+        xbox.povUp().onTrue(
+                superstructure.getArm().stowCommand()
+                        .andThen(
+                                superstructure.getElevator().getHomingCommand()
+                                        .alongWith(superstructure.getArm().runIntakeCommand().asProxy())))
+                .onFalse(superstructure.getArm().stopRollersCommand());
 
         // Returns the arm to a stowed position.
         xbox.povDown().onTrue(superstructure.stow());
@@ -141,5 +146,6 @@ public class RobotContainer {
         xbox.povRight()
                 .whileTrue(superstructure.reverseCommand())
                 .onFalse(superstructure.getIndexer().stopCommand().alongWith(superstructure.getIntake().stopRollersCommand()));
+
     }
 }

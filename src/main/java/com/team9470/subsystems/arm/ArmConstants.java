@@ -23,7 +23,7 @@ public final class ArmConstants {
 
     public static final Angle CORAL_HANDOFF_PREP_ANGLE = Units.Degrees.of(-88);
 
-    public static final Angle ALGAE_GROUND_INTAKE_ANGLE = Units.Degrees.of(-30);
+    public static final Angle ALGAE_GROUND_INTAKE_ANGLE = Units.Degrees.of(-35);
     public static final Angle ALGAE_REEF_INTAKE_ANGLE = Units.Degrees.of(0);
 
     // Coral scoring angles

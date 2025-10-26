@@ -194,7 +194,7 @@ public class Superstructure extends SubsystemBase {
                 new ParallelDeadlineGroup(
                         Commands.waitUntil(arm::isHoldingItem).andThen(new WaitCommand(0.4)),
                         new ParallelCommandGroup(
-                                elevator.L2(),
+                                elevator.AL1(),
                                 arm.moveCommand(ArmConstants.ALGAE_GROUND_INTAKE_ANGLE)
                         )
                 ),
@@ -309,7 +309,7 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command stow() {
-        return new ParallelCommandGroup(
+        return Commands.sequence(
                 elevator.stow(),
                 arm.stowCommand()
         ).withName("SuperstructureStow");
@@ -471,7 +471,7 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command armOuttake() {
-        return arm.runOuttakeCommand().alongWith(this.runOnce(() -> heldPiece = PieceType.NONE));
+        return arm.runOuttakeCommand().alongWith(new InstantCommand(() -> heldPiece = PieceType.NONE));
     }
 
     public Command armStop() {
